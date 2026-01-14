@@ -1,1338 +1,1184 @@
-toLowerCase().includes(q)
-    );
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>daybyday</title>
 
-    if(sort==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(sort==="old") filtered.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-    if(sort==="rating") filtered.sort((a,b)=>(Number(b.rating||0))-(Number(a.rating||0)));
-    if(sort==="title") filtered.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
+  <!-- Single-file app (GitHub Pages friendly) -->
+  <style>
+    :root{
+      --ink:#15151e;
+      --muted:#6b7280;
+      --line:#e5e7eb;
 
-    mList.innerHTML="";
-    if(!filtered.length){
-      mList.innerHTML = emptyMsg("nothing here yet.");
-      return;
+      --chip-edu:#ffe9f4;
+      --chip-ath:#e3f9e8;
+      --chip-soc:#e7f3ff;
+      --chip-health:#fff9e5;
+      --chip-pers:#f1ecff;
+
+      --cat-edu-border:#f9a8d4;
+      --cat-ath-border:#86efac;
+      --cat-soc-border:#bfdbfe;
+      --cat-health-border:#facc15;
+      --cat-pers-border:#c4b5fd;
+
+      --pink:#ffeaf5;          /* urgent */
+      --pink-border:#fbcfe8;
+
+      --benefit:#eef2ff;
+      --benefit-border:#c7d2fe;
+
+      --radius:14px;
+      --radius-med:10px;
+      --shadow: 0 10px 24px rgba(148,163,184,.22);
     }
 
-    const statusLabel = { towatch:"to do", watching:"in progress", done:"done" };
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text","Segoe UI", sans-serif;
+      background:#fff;
+      color:var(--ink);
+    }
 
-    filtered.forEach(x=>{
-      const rating = Number(x.rating||0) ? `${x.rating}/10` : "—";
-      const extraLine = (x.extra||"").trim() ? `${escapeHtml(cfg.extraLeftLabel)}: ${escapeHtml(x.extra)}` : "";
-      mList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left">
-            <div style="min-width:0;flex:1">
-              <details>
-                <summary>
-                  <div class="text">
-                    ${escapeHtml(x.title)}
-                    <span style="margin-left:8px">${catPill(x.category)}</span>
-                  </div>
-                  <div class="meta">
-                    ${escapeHtml(statusLabel[x.status]||x.status||"")} · rating ${escapeHtml(rating)}
-                    ${extraLine ? " · "+extraLine : ""}
-                  </div>
-                </summary>
+    /* Layout */
+    .shell{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:260px minmax(0,1fr);
+    }
+    @media (max-width: 900px){
+      .shell{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    }
 
-                <div style="margin-top:10px">
-                  <div class="grid2" style="gap:8px">
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">status</div>
-                      <select class="select mEditStatus" data-s="${x.id}" style="width:100%">
-                        <option value="towatch" ${x.status==="towatch"?"selected":""}>to do</option>
-                        <option value="watching" ${x.status==="watching"?"selected":""}>in progress</option>
-                        <option value="done" ${x.status==="done"?"selected":""}>done</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">rating</div>
-                      <input class="input mEditRating" data-r="${x.id}" type="number" min="0" max="10" step="0.5" value="${escapeHtml(String(x.rating||0))}" style="width:100%"/>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">${escapeHtml(cfg.extraLeftLabel)}</div>
-                      <input class="input mEditExtra" data-e="${x.id}" value="${escapeHtml(x.extra||"")}" style="width:100%"/>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">category</div>
-                      <select class="select mEditCat" data-c="${x.id}" style="width:100%">
-                        <option value="personal" ${x.category==="personal"?"selected":""}>personal</option>
-                        <option value="social" ${x.category==="social"?"selected":""}>social</option>
-                        <option value="health" ${x.category==="health"?"selected":""}>health</option>
-                        <option value="education" ${x.category==="education"?"selected":""}>education</option>
-                        <option value="athletics" ${x.category==="athletics"?"selected":""}>athletics</option>
-                      </select>
-                    </div>
-                  </div>
+    aside{
+      border-right:1px solid rgba(148,163,184,.25);
+      padding:22px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      background:#fff;
+    }
+    @media (max-width:900px){
+      aside{
+        border-right:none;
+        border-bottom:1px solid rgba(148,163,184,.25);
+        flex-direction:row;
+        flex-wrap:wrap;
+        align-items:flex-start;
+        justify-content:space-between;
+      }
+    }
 
-                  <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin:12px 0 6px">notes</div>
-                  <textarea class="textarea mEditNotes" data-n="${x.id}" placeholder="notes…">${escapeHtml(x.notes||"")}</textarea>
+    .logo{
+      font-family:"Playfair Display","DM Serif Display",serif;
+      font-size:22px;
+      letter-spacing:.08em;
+      text-transform:lowercase;
+    }
 
-                  <div class="row" style="margin-top:10px">
-                    <button class="btn small mSave" data-save="${x.id}">save</button>
-                    <button class="btn small danger mDelete" data-del="${x.id}">delete</button>
-                  </div>
-                </div>
-              </details>
-            </div>
-          </div>
-          <div class="x" title="delete">×</div>
+    .user{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 10px;border-radius:16px;background:#f8fafc;
+      max-width:240px;
+    }
+    .avatar{width:30px;height:30px;border-radius:999px;background:#e5e7eb}
+    .hello{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9ca3af}
+    .name{font-size:13px;font-weight:650}
+    .name-edit{font-size:10px;color:#6b7280;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+    .nav{display:flex;flex-direction:column;gap:10px;min-width:220px}
+    .nav-group{display:flex;flex-direction:column;gap:6px}
+    .nav-label{
+      font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+      color:#94a3b8;margin-top:6px;
+    }
+    .link{
+      display:block;
+      padding:8px 11px;
+      border-radius:var(--radius-med);
+      font-size:13px;
+      color:#111827;
+      text-decoration:none;
+      background:transparent;
+      transition:background .15s ease,color .15s ease;
+      border:1px solid transparent;
+    }
+    .link:hover{background:#f3f4f6}
+    .link.active{background:#111827;color:#fff}
+
+    main{padding:22px 24px 30px}
+    @media (max-width:900px){main{padding:16px 14px 24px}}
+
+    .page{max-width:1200px;margin:0 auto}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+      margin-bottom:14px;
+    }
+    .title{
+      font-family:"Playfair Display","DM Serif Display",serif;
+      font-size:26px;letter-spacing:.18em;text-transform:uppercase;
+      margin:0 0 6px;
+    }
+    .subtitle{margin:0;color:var(--muted);font-size:13px}
+
+    /* Cards / inputs */
+    .card{
+      border:1px solid rgba(148,163,184,.35);
+      border-radius:18px;
+      background:#fff;
+      box-shadow: 0 8px 20px rgba(148,163,184,.12);
+    }
+    .card.pad{padding:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width: 900px){ .grid2{grid-template-columns:1fr} }
+
+    .input, .select, .textarea{
+      border:1px solid #e5e7eb;border-radius:12px;
+      padding:10px 12px;font-size:13px;outline:none;background:#fff;
+    }
+    .textarea{min-height:140px;resize:vertical;width:100%}
+    .btn{
+      border:1px solid #e5e7eb;background:#fff;
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+      cursor:pointer;
+    }
+    .btn:hover{background:#f3f4f6}
+    .btn.primary{background:#111827;color:#fff;border-color:#111827}
+    .btn.primary:hover{filter:brightness(1.03)}
+    .btn.danger{border-color:#ef4444;color:#ef4444}
+    .btn.danger:hover{background:#fff1f2}
+
+    .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .item{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+      padding:10px 12px;border-radius:14px;border:1px solid #e5e7eb;
+      background:#fff;
+    }
+    .item .left{display:flex;align-items:flex-start;gap:10px;min-width:0;flex:1}
+    .item .text{font-size:13px;word-break:break-word}
+    .item .meta{font-size:11px;color:#6b7280;margin-top:2px}
+    .x{cursor:pointer;font-size:16px;line-height:1;padding:0 6px;color:#6b7280}
+    .x:hover{color:#111827}
+    .muted{color:var(--muted)}
+
+    /* Pills */
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:10px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      box-shadow:0 3px 8px rgba(148,163,184,.14);
+      white-space:nowrap;
+    }
+    .pill[data-cat="education"]{background:var(--chip-edu);border-color:var(--cat-edu-border)}
+    .pill[data-cat="athletics"]{background:var(--chip-ath);border-color:var(--cat-ath-border)}
+    .pill[data-cat="social"]{background:var(--chip-soc);border-color:var(--cat-soc-border)}
+    .pill[data-cat="health"]{background:var(--chip-health);border-color:var(--cat-health-border)}
+    .pill[data-cat="personal"]{background:var(--chip-pers);border-color:var(--cat-pers-border)}
+
+    /* KPI */
+    .kpis{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 900px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+    .kpi{
+      border:1px solid rgba(148,163,184,.35);
+      border-radius:16px;
+      padding:10px 12px;
+      background:#fff;
+      box-shadow:0 6px 16px rgba(148,163,184,.12);
+    }
+    .kpi .n{font-size:18px;font-weight:800}
+    .kpi .l{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6b7280;margin-top:2px}
+
+    /* ========= WEEKLY CALENDAR ========= */
+    .wk-range{font-size:13px;color:#4b5563;margin:0 0 6px;text-align:right}
+    .wk-nav{display:flex;gap:8px;justify-content:flex-end}
+    .wk-nav .btn{padding:8px 12px;border-radius:12px}
+
+    .wk-priority{
+      margin:14px 0 14px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid #e5e7eb;
+      background:#fdfdfd;
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .wk-priority-head{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .wk-priority-title{
+      font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:650;
+    }
+    .wk-priority-sub{font-size:11px;color:#6b7280}
+    .wk-key{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:10px;color:#6b7280}
+    .dot{width:10px;height:10px;border-radius:999px;border:1px solid #e5e7eb;display:inline-block}
+    .dot.urgent{background:var(--pink);border-color:var(--pink-border)}
+    .dot.benefit{background:var(--benefit);border-color:var(--benefit-border)}
+    .dot.normal{background:#f9fafb;border-color:#e5e7eb}
+    .wk-priority-list{display:flex;gap:6px;flex-wrap:wrap}
+    .wk-pill{
+      border-radius:999px;
+      padding:6px 10px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+      box-shadow: 0 3px 8px rgba(148,163,184,.18);
+      display:flex;flex-direction:column;gap:2px;
+      max-width:100%;
+      cursor:default;
+    }
+    .wk-pill.urgent{background:var(--pink);border-color:var(--pink-border)}
+    .wk-pill.benefit{background:var(--benefit);border-color:var(--benefit-border)}
+    .wk-pill .t{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wk-pill .m{font-size:10px;color:#6b7280;white-space:nowrap}
+    .wk-empty{font-size:11px;color:#9ca3af}
+
+    .wk-category{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .wk-chip{
+      border-radius:12px;padding:6px 12px;font-size:11px;
+      border:1px solid rgba(148,163,184,.5);
+      box-shadow:0 3px 8px rgba(148,163,184,.18);
+      background:#fff;
+    }
+    .wk-chip[data-cat="education"]{background:var(--chip-edu)}
+    .wk-chip[data-cat="athletics"]{background:var(--chip-ath)}
+    .wk-chip[data-cat="social"]{background:var(--chip-soc)}
+    .wk-chip[data-cat="health"]{background:var(--chip-health)}
+    .wk-chip[data-cat="personal"]{background:var(--chip-pers)}
+
+    .wk-layout{
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.35);
+      overflow:hidden;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+      background:#fff;
+    }
+    .wk-top{
+      display:grid;
+      grid-template-columns:70px minmax(0,1fr);
+      border-bottom:1px solid #e5e7eb;
+    }
+    .wk-top-left{border-right:1px solid #e5e7eb}
+    .wk-top-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+    .wk-scroll{
+      display:grid;
+      grid-template-columns:70px minmax(0,1fr);
+      max-height:640px;
+      overflow-y:auto;
+    }
+    .wk-times{border-right:1px solid #e5e7eb;background:#fff}
+    .wk-time-row{
+      height:40px;border-top:1px solid #f3f4f6;
+      font-size:10px;color:#9ca3af;padding:2px 6px;
+    }
+    .wk-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+    .wk-day{border-left:1px solid #f3f4f6}
+    .wk-day:first-child{border-left:none}
+    .wk-day-header{
+      padding:8px 10px 4px;border-bottom:1px solid #e5e7eb;
+      font-size:11px;background:#fff;
+    }
+    .wk-day-name{font-weight:650}
+    .wk-day-date{font-size:10px;color:#9ca3af}
+
+    .wk-assign-row{
+      padding:6px 10px;
+      display:flex;gap:6px;align-items:center;
+      border-bottom:1px solid #f3f4f6;
+      flex-wrap:wrap;
+    }
+    .wk-assign-type,.wk-assign-cat{
+      font-size:10px;border-radius:12px;border:1px solid #e5e7eb;
+      padding:4px 6px;background:#fff;flex:0 0 auto;
+    }
+    .wk-assign-input{
+      flex:1 1 auto;min-width:120px;
+      font-size:10px;border-radius:12px;border:1px solid #e5e7eb;
+      padding:6px 8px;background:#fff;
+    }
+    .wk-assign-input::placeholder{color:#cbd5e1}
+
+    .wk-assign-chips{
+      padding:6px 10px 10px;
+      border-bottom:1px solid #f3f4f6;
+      display:flex;flex-wrap:wrap;gap:6px;
+    }
+
+    /* TASK CHIPS (NOW CATEGORY-COLORED) */
+    .task{
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      border-radius:999px;
+      padding:6px 8px;
+      font-size:10px;
+      display:inline-flex;align-items:center;gap:6px;
+      max-width:100%;
+      box-shadow:0 3px 8px rgba(148,163,184,.14);
+    }
+    .task[data-cat="education"]{background:var(--chip-edu);border-color:var(--cat-edu-border)}
+    .task[data-cat="athletics"]{background:var(--chip-ath);border-color:var(--cat-ath-border)}
+    .task[data-cat="social"]{background:var(--chip-soc);border-color:var(--cat-soc-border)}
+    .task[data-cat="health"]{background:var(--chip-health);border-color:var(--cat-health-border)}
+    .task[data-cat="personal"]{background:var(--chip-pers);border-color:var(--cat-pers-border)}
+
+    .task.urgent{box-shadow:0 0 0 2px var(--pink-border) inset}
+    .task.benefit{box-shadow:0 0 0 2px var(--benefit-border) inset}
+    .task.done{opacity:.75}
+    .task.done .task-text{color:#9ca3af;text-decoration:line-through}
+    .task-check{width:11px;height:11px;cursor:pointer;flex:0 0 auto}
+    .task-dot{
+      width:10px;height:10px;border-radius:999px;border:1px solid #d1d5db;
+      background:#fff;cursor:pointer;flex:0 0 auto;
+    }
+    .task-text{
+      white-space:normal;
+      word-break:break-word;
+      max-width:220px;
+    }
+    .task-x{cursor:pointer;font-size:12px;line-height:1;padding:0 2px;color:#6b7280}
+    .task-x:hover{color:#111827}
+
+    .wk-all-day-row{
+      padding:4px 10px 6px;
+      border-bottom:1px solid #e5e7eb;
+      display:flex;gap:6px;align-items:center;font-size:10px;
+    }
+    .wk-all-day-list{flex:1;display:flex;flex-wrap:wrap;gap:4px}
+    .wk-all-day-pill{
+      border-radius:12px;padding:3px 8px;font-size:10px;
+      background:#e0f2fe;border:1px solid #bfdbfe;cursor:pointer;
+    }
+    .wk-all-day-pill[data-cat="education"]{background:var(--chip-edu);border-color:var(--cat-edu-border)}
+    .wk-all-day-pill[data-cat="athletics"]{background:var(--chip-ath);border-color:var(--cat-ath-border)}
+    .wk-all-day-pill[data-cat="social"]{background:var(--chip-soc);border-color:var(--cat-soc-border)}
+    .wk-all-day-pill[data-cat="health"]{background:var(--chip-health);border-color:var(--cat-health-border)}
+    .wk-all-day-pill[data-cat="personal"]{background:var(--chip-pers);border-color:var(--cat-pers-border)}
+    .wk-all-day-add{
+      border-radius:12px;border:1px solid #e5e7eb;background:#fff;width:22px;height:22px;
+      display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;
+    }
+    .wk-all-day-add:hover{background:#f3f4f6}
+
+    .wk-day-body{
+      position:relative;height:960px;
+      background-image:repeating-linear-gradient(to bottom,#f3f4f6 0,#f3f4f6 1px,transparent 1px,transparent 40px);
+    }
+    .event{
+      position:absolute;left:7%;right:7%;
+      border-radius:12px;padding:4px 6px;font-size:11px;
+      background:#e7f3ff;border:1px solid #bfdbfe;
+      box-shadow:0 6px 14px rgba(148,163,184,.45);
+      cursor:pointer;overflow:hidden;
+    }
+    .event[data-cat="education"]{background:var(--chip-edu);border-color:var(--cat-edu-border)}
+    .event[data-cat="athletics"]{background:var(--chip-ath);border-color:var(--cat-ath-border)}
+    .event[data-cat="social"]{background:var(--chip-soc);border-color:var(--cat-soc-border)}
+    .event[data-cat="health"]{background:var(--chip-health);border-color:var(--cat-health-border)}
+    .event[data-cat="personal"]{background:var(--chip-pers);border-color:var(--cat-pers-border)}
+    .event .et{font-weight:600}
+    .event .em{font-size:10px;color:#4b5563}
+
+    /* Modal */
+    .overlay{
+      position:fixed;inset:0;background:rgba(15,23,42,.2);
+      display:none;align-items:center;justify-content:center;z-index:50;
+    }
+    .overlay.show{display:flex}
+    .modal{
+      width:100%;max-width:460px;background:#fff;border-radius:18px;
+      box-shadow:0 24px 60px rgba(15,23,42,.45);
+      padding:16px 16px 14px;
+      margin:0 12px;
+    }
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .modal-title{font-size:14px;font-weight:700}
+    .close{border:none;background:none;font-size:18px;cursor:pointer}
+    .field{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+    .field label{flex:0 0 70px;font-size:11px;color:#6b7280}
+    .field .input,.field .select{flex:1}
+    .foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+    .del{border:none;background:none;font-size:11px;color:#ef4444;cursor:pointer}
+    .save{border:none;border-radius:12px;padding:8px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:#111827;color:#fff;cursor:pointer}
+  </style>
+</head>
+
+<body>
+<div class="shell">
+  <aside>
+    <div>
+      <div class="logo">daybyday</div>
+      <div class="user">
+        <div class="avatar"></div>
+        <div style="min-width:0">
+          <div class="hello">welcome back</div>
+          <div class="name" id="userName">your name</div>
+          <div class="name-edit" id="editName">edit name</div>
         </div>
-      `);
-    });
+      </div>
+    </div>
 
-    // quick delete X
-    mList.querySelectorAll(".item .x").forEach(x=>{
-      x.onclick = ()=>{
-        const id = x.closest(".item").getAttribute("data-id");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(cfg.storageKey, data);
-          draw();
-        }
-      };
-    });
+    <nav class="nav">
+      <div class="nav-group">
+        <div class="nav-label">planning</div>
+        <a class="link" href="#/weekly" data-route="/weekly">weekly calendar</a>
+        <a class="link" href="#/goals" data-route="/goals">goals hub</a>
+        <a class="link" href="#/habits" data-route="/habits">habits</a>
+      </div>
 
-    // save edits
-    mList.querySelectorAll(".mSave").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-save");
-        const it = data.find(x=>x.id===id);
-        if(!it) return;
+      <div class="nav-group">
+        <div class="nav-label">lifestyle</div>
+        <a class="link" href="#/movies" data-route="/movies">movies</a>
+        <a class="link" href="#/shows" data-route="/shows">shows</a>
+        <a class="link" href="#/books" data-route="/books">books</a>
+        <a class="link" href="#/music" data-route="/music">music</a>
+        <a class="link" href="#/places" data-route="/places">places</a>
+        <a class="link" href="#/wishlist" data-route="/wishlist">wishlist</a>
+        <a class="link" href="#/journal" data-route="/journal">journal</a>
+      </div>
 
-        const st = mList.querySelector(`[data-s="${id}"]`);
-        const rt = mList.querySelector(`[data-r="${id}"]`);
-        const ex = mList.querySelector(`[data-e="${id}"]`);
-        const ca = mList.querySelector(`[data-c="${id}"]`);
-        const no = mList.querySelector(`[data-n="${id}"]`);
+      <div class="nav-group">
+        <div class="nav-label">wellness</div>
+        <a class="link" href="#/workouts" data-route="/workouts">workouts</a>
+        <a class="link" href="#/meals" data-route="/meals">meals</a>
+        <a class="link" href="#/skincare" data-route="/skincare">skincare</a>
+        <a class="link" href="#/affirmations" data-route="/affirmations">affirmations</a>
+      </div>
 
-        it.status = st ? st.value : it.status;
-        it.rating = rt ? (parseFloat(rt.value||"0")||0) : it.rating;
-        it.extra = ex ? (ex.value||"").trim() : it.extra;
-        it.category = ca ? ca.value : it.category;
-        it.notes = no ? (no.value||"").trim() : it.notes;
+      <div class="nav-group">
+        <div class="nav-label">settings</div>
+        <a class="link" href="#/data" data-route="/data">export / reset</a>
+      </div>
+    </nav>
+  </aside>
 
-        saveJSON(cfg.storageKey, data);
-        draw();
-      };
-    });
+  <main>
+    <div id="app" class="page"></div>
+  </main>
+</div>
 
-    // delete inside details
-    mList.querySelectorAll(".mDelete").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-del");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(cfg.storageKey, data);
-          draw();
-        }
-      };
-    });
-  }
+<!-- EVENT MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">new event</div>
+      <button class="close" id="closeModal">×</button>
+    </div>
 
-  document.getElementById("mAdd").onclick = add;
-  document.getElementById("mClear").onclick = clearForm;
-  mSearch.oninput = draw;
-  mFilterStatus.onchange = draw;
-  mSort.onchange = draw;
+    <div class="field">
+      <label>title</label>
+      <input class="input" id="evTitle" placeholder="practice, dinner, meeting…" />
+    </div>
 
-  draw();
+    <div class="field">
+      <label>time</label>
+      <input class="input" id="evStart" placeholder="4:00 pm" />
+      <input class="input" id="evEnd" placeholder="5:30 pm" />
+    </div>
+
+    <div class="field">
+      <label>category</label>
+      <select class="select" id="evCat">
+        <option value="education">education</option>
+        <option value="athletics">athletics</option>
+        <option value="social">social</option>
+        <option value="health">health</option>
+        <option value="personal">personal</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>repeat</label>
+      <select class="select" id="evRepeat">
+        <option value="none">none</option>
+        <option value="weekly">weekly</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label></label>
+      <label style="display:flex;gap:8px;align-items:center;font-size:11px;color:#4b5563;">
+        <input type="checkbox" id="evAllDay" />
+        all day
+      </label>
+    </div>
+
+    <div class="foot">
+      <button class="del" id="deleteEvent">delete</button>
+      <button class="save" id="saveEvent">save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================
+   STORAGE KEYS
+========================== */
+const LS = {
+  name: "daybyday_profile_name",
+  weeklyEvents: "daybyday_weekly_events_v5",
+  weeklyTasks:  "daybyday_weekly_tasks_v2",
+
+  goals: "daybyday_goals_v2",
+  habits:"daybyday_habits_v1",
+
+  movies:"daybyday_movies_v2",
+  shows:"daybyday_shows_v1",
+  books:"daybyday_books_v2",
+  music:"daybyday_music_v1",
+  places:"daybyday_places_v1",
+
+  wishlist:"daybyday_wishlist_v2",
+  workouts:"daybyday_workouts_v1",
+  meals:"daybyday_meals_v1",
+  skincare:"daybyday_skincare_v1",
+  affirmations:"daybyday_affirmations_v1",
+
+  journal:"daybyday_journal_v1"
+};
+
+function loadJSON(key, fallback){
+  try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+  catch(e){ return fallback; }
+}
+function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+function uid(){
+  return "id_"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+}
+function catPill(cat){
+  const c = cat || "personal";
+  return `<span class="pill" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</span>`;
+}
+function renderKPI(obj){
+  const entries = Object.values(obj || {});
+  return `
+    <div class="kpis">
+      ${entries.map(x=>`
+        <div class="kpi">
+          <div class="n">${escapeHtml(String(x.n ?? 0))}</div>
+          <div class="l">${escapeHtml(String(x.l ?? ""))}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
 /* ==========================
-   WISHLIST (detailed)
-   - price + priority + link + status
+   NAME (editable)
 ========================== */
-function renderWishlist(){
-  const data = loadJSON(LS.wishlist, []);
+function setNameUI(){
+  const el = document.getElementById("userName");
+  const n = localStorage.getItem(LS.name) || "your name";
+  el.textContent = n;
+}
+setNameUI();
+document.getElementById("editName").onclick = ()=>{
+  const current = localStorage.getItem(LS.name) || "";
+  const next = prompt("Your name:", current);
+  if(next===null) return;
+  localStorage.setItem(LS.name, (next||"").trim() || "your name");
+  setNameUI();
+};
+
+/* ==========================
+   ROUTER
+========================== */
+const app = document.getElementById("app");
+const routes = {
+  "/weekly": renderWeekly,
+
+  "/goals": renderGoalsHub,
+  "/habits": renderHabits,
+
+  "/movies": () => renderCollectionPage(COLLECTIONS.movies),
+  "/shows":  () => renderCollectionPage(COLLECTIONS.shows),
+  "/books":  () => renderCollectionPage(COLLECTIONS.books),
+  "/music":  () => renderCollectionPage(COLLECTIONS.music),
+  "/places": () => renderCollectionPage(COLLECTIONS.places),
+
+  "/wishlist": () => renderCollectionPage(COLLECTIONS.wishlist),
+  "/workouts": () => renderCollectionPage(COLLECTIONS.workouts),
+  "/meals": () => renderCollectionPage(COLLECTIONS.meals),
+  "/skincare": () => renderCollectionPage(COLLECTIONS.skincare),
+  "/affirmations": () => renderCollectionPage(COLLECTIONS.affirmations),
+
+  "/journal": renderJournal,
+  "/data": renderDataTools
+};
+
+function getRoute(){
+  const h = (location.hash || "#/weekly").replace("#","");
+  return h.startsWith("/") ? h : "/weekly";
+}
+function setActiveNav(route){
+  document.querySelectorAll(".link[data-route]").forEach(a=>{
+    a.classList.toggle("active", a.getAttribute("data-route") === route);
+  });
+}
+function navigate(){
+  const r = getRoute();
+  setActiveNav(r);
+  (routes[r] || routes["/weekly"])();
+}
+window.addEventListener("hashchange", navigate);
+
+/* ==========================
+   COLLECTION PAGES (DETAILED)
+   - one renderer for movies/books/shows/etc
+========================== */
+const COLLECTIONS = {
+  movies: {
+    title: "movies",
+    sub: "track what you want to watch, your ratings, and what you thought.",
+    storageKey: LS.movies,
+    fields: {
+      title: { label:"title", placeholder:"movie title" },
+      category: { label:"category", options:["personal","social","health","education","athletics"], default:"personal" },
+      status: { label:"status", options:["to do","watching","done"], default:"to do" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"vibe, who to watch with, anything…" }
+    }
+  },
+  shows: {
+    title: "shows",
+    sub: "keep a clean list for shows so you don’t forget what you’re mid-season on.",
+    storageKey: LS.shows,
+    fields: {
+      title: { label:"title", placeholder:"show title" },
+      category: { label:"category", options:["personal","social","health","education","athletics"], default:"personal" },
+      status: { label:"status", options:["to do","watching","done"], default:"to do" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"season/episode + notes" }
+    }
+  },
+  books: {
+    title: "books",
+    sub: "track to-read + what you’re reading + quick thoughts when you finish.",
+    storageKey: LS.books,
+    fields: {
+      title: { label:"title", placeholder:"book title" },
+      category: { label:"category", options:["personal","social","health","education","athletics"], default:"education" },
+      status: { label:"status", options:["to do","reading","done"], default:"to do" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"author, why you chose it, quotes…" }
+    }
+  },
+  music: {
+    title: "music",
+    sub: "songs + albums + playlists you’re obsessed with (so you can come back later).",
+    storageKey: LS.music,
+    fields: {
+      title: { label:"title", placeholder:"song / album / playlist" },
+      category: { label:"category", options:["personal","social","health","education","athletics"], default:"personal" },
+      status: { label:"status", options:["to do","listening","done"], default:"listening" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"mood, best time to listen, links…" }
+    }
+  },
+  places: {
+    title: "places",
+    sub: "restaurants, trips, stores, random places you want to try — plus notes.",
+    storageKey: LS.places,
+    fields: {
+      title: { label:"place", placeholder:"place name" },
+      category: { label:"category", options:["personal","social","health","education","athletics"], default:"social" },
+      status: { label:"status", options:["to do","planned","done"], default:"to do" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"location, what to order, who to go with…" }
+    }
+  },
+  wishlist: {
+    title: "wishlist",
+    sub: "save items + price + link + notes so you stop forgetting.",
+    storageKey: LS.wishlist,
+    fields: {
+      title: { label:"item", placeholder:"item name" },
+      category: { label:"category", options:["personal","social","health","education","athletics"], default:"personal" },
+      status: { label:"status", options:["want","saving","bought"], default:"want" },
+      price: { label:"price", type:"text", placeholder:"$ or range (optional)" },
+      link: { label:"link", type:"text", placeholder:"link (optional)" },
+      priority: { label:"priority", options:["low","normal","high"], default:"normal" },
+      extra: { label:"notes", type:"text", placeholder:"color/size/where you saw it…" }
+    }
+  },
+  workouts: {
+    title: "workouts",
+    sub: "workouts you like + things to repeat. keep it quick and searchable.",
+    storageKey: LS.workouts,
+    fields: {
+      title: { label:"workout", placeholder:"workout name" },
+      category: { label:"category", options:["health","athletics","personal"], default:"health" },
+      status: { label:"status", options:["to do","planned","done"], default:"to do" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"duration, split, playlist, etc." }
+    }
+  },
+  meals: {
+    title: "meals",
+    sub: "meals you want to try + your favorites so you don’t blank when hungry.",
+    storageKey: LS.meals,
+    fields: {
+      title: { label:"meal", placeholder:"meal / snack" },
+      category: { label:"category", options:["health","personal","social"], default:"health" },
+      status: { label:"status", options:["to do","planned","done"], default:"to do" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"ingredients, recipe link, where to get it…" }
+    }
+  },
+  skincare: {
+    title: "skincare",
+    sub: "products + routines + what actually works (so you don’t rebuy mistakes).",
+    storageKey: LS.skincare,
+    fields: {
+      title: { label:"product", placeholder:"product name" },
+      category: { label:"category", options:["health","personal"], default:"personal" },
+      status: { label:"status", options:["to do","using","done"], default:"using" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"AM/PM, reactions, repurchase?" }
+    }
+  },
+  affirmations: {
+    title: "affirmations",
+    sub: "short lines you want to repeat (save your best ones).",
+    storageKey: LS.affirmations,
+    fields: {
+      title: { label:"affirmation", placeholder:"I am…" },
+      category: { label:"category", options:["personal","health","education","social"], default:"personal" },
+      status: { label:"status", options:["to do","using","done"], default:"using" },
+      rating: { label:"rating", type:"number", placeholder:"0–10", min:0, max:10 },
+      extra: { label:"notes", type:"text", placeholder:"when to say it / why it hits" }
+    }
+  }
+};
+
+function emptyMsg(msg){ return `<div class="muted" style="font-size:12px;padding:8px 2px;">${escapeHtml(msg)}</div>`; }
+
+function renderCollectionPage(cfg){
+  const data = loadJSON(cfg.storageKey, []);
+
+  // basic counts
   const total = data.length;
-  const bought = data.filter(x=>x.status==="bought").length;
-  const want = total - bought;
-  const high = data.filter(x=>x.priority==="high" && x.status!=="bought").length;
+  const doneKey = (cfg.fields.status?.options || []).includes("done") ? "done" : null;
+  const done = doneKey ? data.filter(x=>x.status===doneKey).length : data.filter(x=>x.status==="done").length;
+  const active = total - done;
+  const high = data.filter(x=>(x.priority||"") === "high" && (x.status||"") !== "done" && (x.status||"") !== "bought").length;
 
   app.innerHTML = `
     <div class="topbar">
       <div>
-        <h1 class="title">wishlist</h1>
-        <p class="subtitle">save items + links + price so you stop forgetting.</p>
+        <h1 class="title">${escapeHtml(cfg.title)}</h1>
+        <p class="subtitle">${escapeHtml(cfg.sub || "")}</p>
       </div>
     </div>
 
     ${renderKPI({
       a:{n: total, l:"items"},
-      b:{n: want, l:"want"},
-      c:{n: bought, l:"bought"},
+      b:{n: active, l:"active"},
+      c:{n: done, l:"done"},
       d:{n: high, l:"high priority"}
     })}
 
     <div class="card pad" style="margin-top:12px">
       <div class="grid2">
         <div>
-          <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">add item</div>
-          <input class="input" id="wName" placeholder="item name" style="width:100%;margin-bottom:8px" />
+          <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">add</div>
+          <input class="input" id="fTitle" placeholder="${escapeHtml(cfg.fields.title.placeholder || "title")}" style="width:100%;margin-bottom:8px" />
+
           <div class="grid2" style="gap:8px">
-            <input class="input" id="wPrice" placeholder="price (optional)" style="width:100%" />
-            <select class="select" id="wPriority" style="width:100%">
-              <option value="normal">normal</option>
-              <option value="high">high</option>
-              <option value="low">low</option>
+            <select class="select" id="fCat" style="width:100%">
+              ${(cfg.fields.category.options || ["personal","social","health","education","athletics"]).map(o=>
+                `<option value="${escapeHtml(o)}"${o===cfg.fields.category.default?" selected":""}>${escapeHtml(o)}</option>`
+              ).join("")}
+            </select>
+
+            <select class="select" id="fStatus" style="width:100%">
+              ${(cfg.fields.status.options || ["to do","done"]).map(o=>
+                `<option value="${escapeHtml(o)}"${o===cfg.fields.status.default?" selected":""}>${escapeHtml(o)}</option>`
+              ).join("")}
             </select>
           </div>
-          <input class="input" id="wLink" placeholder="link (optional)" style="width:100%;margin-top:8px" />
+
           <div class="grid2" style="gap:8px;margin-top:8px">
-            <select class="select" id="wStatus" style="width:100%">
-              <option value="want">want</option>
-              <option value="saving">saving</option>
-              <option value="bought">bought</option>
+            ${cfg.fields.price ? `<input class="input" id="fPrice" placeholder="${escapeHtml(cfg.fields.price.placeholder||"price")}" style="width:100%" />` : ``}
+            ${cfg.fields.link ? `<input class="input" id="fLink" placeholder="${escapeHtml(cfg.fields.link.placeholder||"link")}" style="width:100%" />` : ``}
+            ${(!cfg.fields.price && !cfg.fields.link) ? `<input class="input" id="fRating" placeholder="${escapeHtml(cfg.fields.rating.placeholder||"rating")}" style="width:100%" />` : ``}
+            ${(cfg.fields.price && cfg.fields.link) ? `` : ``}
+          </div>
+
+          <div class="grid2" style="gap:8px;margin-top:8px">
+            ${cfg.fields.priority ? `
+              <select class="select" id="fPriority" style="width:100%">
+                ${(cfg.fields.priority.options || ["low","normal","high"]).map(o=>
+                  `<option value="${escapeHtml(o)}"${o===cfg.fields.priority.default?" selected":""}>${escapeHtml(o)}</option>`
+                ).join("")}
+              </select>
+            ` : `
+              <select class="select" id="fPriority" style="width:100%">
+                <option value="low">low</option>
+                <option value="normal" selected>normal</option>
+                <option value="high">high</option>
+              </select>
+            `}
+
+            <input class="input" id="fRating" placeholder="${escapeHtml(cfg.fields.rating.placeholder||"0–10")}" style="width:100%" />
+          </div>
+
+          <textarea class="textarea" id="fExtra" placeholder="${escapeHtml(cfg.fields.extra.placeholder || "notes…")}" style="margin-top:8px"></textarea>
+
+          <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="addBtn">add</button>
+            <button class="btn" id="clearBtn">clear</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="row">
+            <input class="input" id="q" placeholder="search…" style="flex:1;min-width:200px" />
+            <select class="select" id="filterStatus">
+              <option value="all">all</option>
+              ${(cfg.fields.status.options || []).map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join("")}
             </select>
-            <select class="select" id="wCat" style="width:100%">
-              <option value="personal">personal</option>
-              <option value="social">social</option>
-              <option value="health">health</option>
+            <select class="select" id="sort">
+              <option value="new">newest</option>
+              <option value="old">oldest</option>
+              <option value="title">title</option>
+              <option value="rating">rating</option>
+              <option value="priority">priority</option>
+            </select>
+          </div>
+
+          <div class="list" id="list"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const fTitle = document.getElementById("fTitle");
+  const fCat = document.getElementById("fCat");
+  const fStatus = document.getElementById("fStatus");
+  const fPrice = document.getElementById("fPrice");
+  const fLink = document.getElementById("fLink");
+  const fPriority = document.getElementById("fPriority");
+  const fRating = document.getElementById("fRating");
+  const fExtra = document.getElementById("fExtra");
+
+  const q = document.getElementById("q");
+  const filterStatus = document.getElementById("filterStatus");
+  const sort = document.getElementById("sort");
+  const list = document.getElementById("list");
+
+  function clearForm(){
+    fTitle.value="";
+    if(fPrice) fPrice.value="";
+    if(fLink) fLink.value="";
+    fPriority.value = (cfg.fields.priority?.default || "normal");
+    fRating.value="";
+    fExtra.value="";
+    fCat.value = (cfg.fields.category.default || "personal");
+    fStatus.value = (cfg.fields.status.default || (cfg.fields.status.options||[])[0] || "to do");
+  }
+
+  function add(){
+    const title = (fTitle.value||"").trim();
+    if(!title) return;
+
+    const it = {
+      id: uid(),
+      title,
+      category: fCat.value || "personal",
+      status: fStatus.value || "to do",
+      priority: fPriority.value || "normal",
+      rating: (fRating.value||"").trim(),
+      extra: (fExtra.value||"").trim(),
+      createdAt: Date.now()
+    };
+    if(fPrice) it.price = (fPrice.value||"").trim();
+    if(fLink) it.link = (fLink.value||"").trim();
+
+    data.unshift(it);
+    saveJSON(cfg.storageKey, data);
+    clearForm();
+    draw();
+  }
+
+  function prioScore(p){ return p==="high"?0 : p==="normal"?1 : 2; }
+  function ratingNum(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? n : -1;
+  }
+
+  function draw(){
+    const query = (q.value||"").trim().toLowerCase();
+    const st = filterStatus.value;
+    const s = sort.value;
+
+    let filtered = [...data];
+
+    if(st !== "all") filtered = filtered.filter(x => (x.status||"") === st);
+
+    if(query){
+      filtered = filtered.filter(x =>
+        (x.title||"").toLowerCase().includes(query) ||
+        (x.extra||"").toLowerCase().includes(query) ||
+        (x.category||"").toLowerCase().includes(query)
+      );
+    }
+
+    if(s==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if(s==="old") filtered.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+    if(s==="title") filtered.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
+    if(s==="rating") filtered.sort((a,b)=>ratingNum(b.rating)-ratingNum(a.rating));
+    if(s==="priority") filtered.sort((a,b)=>prioScore(a.priority)-prioScore(b.priority));
+
+    list.innerHTML = "";
+    if(!filtered.length){
+      list.innerHTML = emptyMsg("nothing here yet.");
+      return;
+    }
+
+    filtered.forEach(x=>{
+      const rating = ratingNum(x.rating) >= 0 ? `${escapeHtml(String(x.rating))}/10` : "—";
+      const link = (x.link||"").trim();
+      const linkHtml = link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer" style="font-size:11px">open link</a>` : "";
+      const priceHtml = x.price ? `<span class="meta">${escapeHtml(x.price)}</span>` : "";
+
+      list.insertAdjacentHTML("beforeend", `
+        <div class="item" data-id="${escapeHtml(x.id)}">
+          <div class="left">
+            <div style="min-width:0;flex:1">
+              <div class="text">
+                <strong>${escapeHtml(x.title||"")}</strong>
+                <span style="margin-left:8px">${catPill(x.category)}</span>
+              </div>
+              <div class="meta">
+                ${escapeHtml(x.status||"")} · ${escapeHtml(x.priority||"normal")} · rating ${escapeHtml(rating)}
+                ${x.price ? " · "+escapeHtml(x.price) : ""}
+              </div>
+              ${linkHtml ? `<div style="margin-top:6px">${linkHtml}</div>` : ""}
+              ${(x.extra||"").trim() ? `<div class="meta" style="margin-top:6px">${escapeHtml(x.extra)}</div>` : ""}
+            </div>
+          </div>
+          <div class="x" title="delete">×</div>
+        </div>
+      `);
+    });
+
+    list.querySelectorAll(".item .x").forEach(btn=>{
+      btn.onclick = ()=>{
+        const id = btn.closest(".item").getAttribute("data-id");
+        const idx = data.findIndex(it=>it.id===id);
+        if(idx>-1){
+          data.splice(idx,1);
+          saveJSON(cfg.storageKey, data);
+          draw();
+        }
+      };
+    });
+  }
+
+  document.getElementById("addBtn").onclick = add;
+  document.getElementById("clearBtn").onclick = clearForm;
+  q.oninput = draw;
+  filterStatus.onchange = draw;
+  sort.onchange = draw;
+  fTitle.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); add(); } });
+
+  draw();
+}
+
+/* ==========================
+   GOALS HUB (DETAILED)
+========================== */
+function renderGoalsHub(){
+  const data = loadJSON(LS.goals, []);
+  const total = data.length;
+  const done = data.filter(x=>x.done).length;
+  const active = total - done;
+  const high = data.filter(x=>x.priority==="high" && !x.done).length;
+
+  app.innerHTML = `
+    <div class="topbar">
+      <div>
+        <h1 class="title">goals hub</h1>
+        <p class="subtitle">big goals, small steps. track category + deadline + progress.</p>
+      </div>
+    </div>
+
+    ${renderKPI({
+      a:{n: total, l:"goals"},
+      b:{n: active, l:"active"},
+      c:{n: done, l:"done"},
+      d:{n: high, l:"high priority"}
+    })}
+
+    <div class="card pad" style="margin-top:12px">
+      <div class="grid2">
+        <div>
+          <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">add goal</div>
+
+          <input class="input" id="gTitle" placeholder="goal title" style="width:100%;margin-bottom:8px" />
+
+          <div class="grid2" style="gap:8px">
+            <select class="select" id="gCat">
               <option value="education">education</option>
               <option value="athletics">athletics</option>
+              <option value="social">social</option>
+              <option value="health">health</option>
+              <option value="personal">personal</option>
             </select>
-          </div>
-          <textarea class="textarea" id="wNotes" placeholder="notes (color, size, where you saw it…)" style="margin-top:8px"></textarea>
-          <div class="row" style="margin-top:10px">
-            <button class="btn primary" id="wAdd">add</button>
-            <button class="btn" id="wClear">clear</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="row">
-            <input class="input" id="wSearch" placeholder="search…" style="flex:1;min-width:200px" />
-            <select class="select" id="wFilter">
-              <option value="all">all</option>
-              <option value="want">want</option>
-              <option value="saving">saving</option>
-              <option value="bought">bought</option>
-            </select>
-            <select class="select" id="wSort">
-              <option value="new">newest</option>
-              <option value="priority">priority</option>
-              <option value="status">status</option>
-              <option value="name">name</option>
-            </select>
-          </div>
-          <div class="list" id="wList"></div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const wName = document.getElementById("wName");
-  const wPrice = document.getElementById("wPrice");
-  const wPriority = document.getElementById("wPriority");
-  const wLink = document.getElementById("wLink");
-  const wStatus = document.getElementById("wStatus");
-  const wCat = document.getElementById("wCat");
-  const wNotes = document.getElementById("wNotes");
-  const wSearch = document.getElementById("wSearch");
-  const wFilter = document.getElementById("wFilter");
-  const wSort = document.getElementById("wSort");
-  const wList = document.getElementById("wList");
-
-  function clearForm(){
-    wName.value=""; wPrice.value=""; wPriority.value="normal"; wLink.value=""; wStatus.value="want"; wCat.value="personal"; wNotes.value="";
-  }
-  function add(){
-    const name=(wName.value||"").trim();
-    if(!name) return;
-    data.unshift({
-      id:uid(),
-      name,
-      price:(wPrice.value||"").trim(),
-      priority:wPriority.value,
-      link:(wLink.value||"").trim(),
-      status:wStatus.value,
-      category:wCat.value,
-      notes:(wNotes.value||"").trim(),
-      createdAt:Date.now()
-    });
-    saveJSON(LS.wishlist, data);
-    clearForm();
-    draw();
-  }
-
-  function prioScore(p){ return p==="high"?0:p==="normal"?1:2; }
-  function statusScore(s){ return s==="want"?0:s==="saving"?1:2; }
-
-  function draw(){
-    const q=(wSearch.value||"").trim().toLowerCase();
-    const f=wFilter.value;
-    const sort=wSort.value;
-
-    let filtered=[...data];
-    if(f!=="all") filtered=filtered.filter(x=>x.status===f);
-    if(q) filtered=filtered.filter(x =>
-      (x.name||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    if(sort==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(sort==="priority") filtered.sort((a,b)=>prioScore(a.priority)-prioScore(b.priority));
-    if(sort==="status") filtered.sort((a,b)=>statusScore(a.status)-statusScore(b.status));
-    if(sort==="name") filtered.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-
-    wList.innerHTML="";
-    if(!filtered.length){ wList.innerHTML = emptyMsg("no items yet."); return; }
-
-    filtered.forEach(x=>{
-      const link = (x.link||"").trim();
-      const linkHtml = link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer" style="font-size:11px">open link</a>` : "";
-      wList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left">
-            <div style="min-width:0;flex:1">
-              <details>
-                <summary>
-                  <div class="text">
-                    ${escapeHtml(x.name)}
-                    <span style="margin-left:8px">${catPill(x.category)}</span>
-                  </div>
-                  <div class="meta">
-                    ${escapeHtml(x.status||"want")} · ${escapeHtml(x.priority||"normal")} priority
-                    ${x.price ? " · "+escapeHtml(x.price) : ""}
-                  </div>
-                </summary>
-
-                <div style="margin-top:10px">
-                  <div class="grid2" style="gap:8px">
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">status</div>
-                      <select class="select wEditStatus" data-s="${x.id}" style="width:100%">
-                        <option value="want" ${x.status==="want"?"selected":""}>want</option>
-                        <option value="saving" ${x.status==="saving"?"selected":""}>saving</option>
-                        <option value="bought" ${x.status==="bought"?"selected":""}>bought</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">priority</div>
-                      <select class="select wEditPrio" data-p="${x.id}" style="width:100%">
-                        <option value="high" ${x.priority==="high"?"selected":""}>high</option>
-                        <option value="normal" ${x.priority==="normal"?"selected":""}>normal</option>
-                        <option value="low" ${x.priority==="low"?"selected":""}>low</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">price</div>
-                      <input class="input wEditPrice" data-r="${x.id}" value="${escapeHtml(x.price||"")}" style="width:100%"/>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">category</div>
-                      <select class="select wEditCat" data-c="${x.id}" style="width:100%">
-                        <option value="personal" ${x.category==="personal"?"selected":""}>personal</option>
-                        <option value="social" ${x.category==="social"?"selected":""}>social</option>
-                        <option value="health" ${x.category==="health"?"selected":""}>health</option>
-                        <option value="education" ${x.category==="education"?"selected":""}>education</option>
-                        <option value="athletics" ${x.category==="athletics"?"selected":""}>athletics</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="row" style="margin-top:8px">
-                    <input class="input wEditLink" data-l="${x.id}" value="${escapeHtml(x.link||"")}" placeholder="link" style="flex:1;min-width:220px" />
-                    ${linkHtml}
-                  </div>
-
-                  <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin:12px 0 6px">notes</div>
-                  <textarea class="textarea wEditNotes" data-n="${x.id}" placeholder="notes…">${escapeHtml(x.notes||"")}</textarea>
-
-                  <div class="row" style="margin-top:10px">
-                    <button class="btn small wSave" data-save="${x.id}">save</button>
-                    <button class="btn small danger wDelete" data-del="${x.id}">delete</button>
-                  </div>
-                </div>
-              </details>
-            </div>
-          </div>
-          <div class="x" title="delete">×</div>
-        </div>
-      `);
-    });
-
-    wList.querySelectorAll(".item .x").forEach(x=>{
-      x.onclick = ()=>{
-        const id = x.closest(".item").getAttribute("data-id");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.wishlist, data);
-          draw();
-        }
-      };
-    });
-
-    wList.querySelectorAll(".wSave").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-save");
-        const it = data.find(x=>x.id===id);
-        if(!it) return;
-
-        const st = wList.querySelector(`[data-s="${id}"]`);
-        const pr = wList.querySelector(`[data-p="${id}"]`);
-        const pc = wList.querySelector(`[data-r="${id}"]`);
-        const ca = wList.querySelector(`[data-c="${id}"]`);
-        const li = wList.querySelector(`[data-l="${id}"]`);
-        const no = wList.querySelector(`[data-n="${id}"]`);
-
-        it.status = st ? st.value : it.status;
-        it.priority = pr ? pr.value : it.priority;
-        it.price = pc ? (pc.value||"").trim() : it.price;
-        it.category = ca ? ca.value : it.category;
-        it.link = li ? (li.value||"").trim() : it.link;
-        it.notes = no ? (no.value||"").trim() : it.notes;
-
-        saveJSON(LS.wishlist, data);
-        draw();
-      };
-    });
-
-    wList.querySelectorAll(".wDelete").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-del");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.wishlist, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("wAdd").onclick = add;
-  document.getElementById("wClear").onclick = clearForm;
-  wSearch.oninput = draw;
-  wFilter.onchange = draw;
-  wSort.onchange = draw;
-
-  draw();
-}
-
-/* ==========================
-   PLACES TO TRY
-   - restaurants/cafes/etc
-========================== */
-function renderPlaces(){
-  const data = loadJSON(LS.places, []);
-  const total=data.length;
-  const been=data.filter(x=>x.status==="been").length;
-  const want=total-been;
-  const top=data.filter(x=>x.priority==="high" && x.status!=="been").length;
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">places to try</h1>
-        <p class="subtitle">save spots so you don’t lose them.</p>
-      </div>
-    </div>
-
-    ${renderKPI({
-      a:{n: total, l:"saved"},
-      b:{n: want, l:"want to go"},
-      c:{n: been, l:"been"},
-      d:{n: top, l:"high priority"}
-    })}
-
-    <div class="card pad" style="margin-top:12px">
-      <div class="grid2">
-        <div>
-          <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">add place</div>
-          <input class="input" id="pName" placeholder="name" style="width:100%;margin-bottom:8px" />
-          <div class="grid2" style="gap:8px">
-            <input class="input" id="pWhere" placeholder="neighborhood / city" style="width:100%"/>
-            <select class="select" id="pType" style="width:100%">
-              <option value="restaurant">restaurant</option>
-              <option value="cafe">cafe</option>
-              <option value="dessert">dessert</option>
-              <option value="shopping">shopping</option>
-              <option value="activity">activity</option>
-              <option value="other">other</option>
-            </select>
-          </div>
-          <div class="grid2" style="gap:8px;margin-top:8px">
-            <select class="select" id="pStatus" style="width:100%">
-              <option value="want">want</option>
-              <option value="planned">planned</option>
-              <option value="been">been</option>
-            </select>
-            <select class="select" id="pPrio" style="width:100%">
-              <option value="normal">normal</option>
-              <option value="high">high</option>
+            <select class="select" id="gPriority">
               <option value="low">low</option>
+              <option value="normal" selected>normal</option>
+              <option value="high">high</option>
             </select>
           </div>
-          <input class="input" id="pLink" placeholder="link (optional)" style="width:100%;margin-top:8px" />
-          <textarea class="textarea" id="pNotes" placeholder="notes (what to order / who to go with / vibe…)" style="margin-top:8px"></textarea>
+
+          <div class="grid2" style="gap:8px;margin-top:8px">
+            <input class="input" id="gDeadline" type="date" />
+            <input class="input" id="gProgress" placeholder="progress % (0–100)" />
+          </div>
+
+          <textarea class="textarea" id="gSteps" placeholder="steps (one per line)"></textarea>
+          <textarea class="textarea" id="gNotes" placeholder="notes (why it matters / what’s blocking you)"></textarea>
+
           <div class="row" style="margin-top:10px">
-            <button class="btn primary" id="pAdd">add</button>
-            <button class="btn" id="pClear">clear</button>
+            <button class="btn primary" id="gAdd">add</button>
+            <button class="btn" id="gClear">clear</button>
           </div>
         </div>
 
         <div>
           <div class="row">
-            <input class="input" id="pSearch" placeholder="search…" style="flex:1;min-width:200px" />
-            <select class="select" id="pFilter">
+            <input class="input" id="gSearch" placeholder="search…" style="flex:1;min-width:200px" />
+            <select class="select" id="gFilter">
               <option value="all">all</option>
-              <option value="want">want</option>
-              <option value="planned">planned</option>
-              <option value="been">been</option>
-            </select>
-            <select class="select" id="pSort">
-              <option value="new">newest</option>
-              <option value="prio">priority</option>
-              <option value="type">type</option>
-              <option value="name">name</option>
-            </select>
-          </div>
-          <div class="list" id="pList"></div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const pName=document.getElementById("pName");
-  const pWhere=document.getElementById("pWhere");
-  const pType=document.getElementById("pType");
-  const pStatus=document.getElementById("pStatus");
-  const pPrio=document.getElementById("pPrio");
-  const pLink=document.getElementById("pLink");
-  const pNotes=document.getElementById("pNotes");
-  const pSearch=document.getElementById("pSearch");
-  const pFilter=document.getElementById("pFilter");
-  const pSort=document.getElementById("pSort");
-  const pList=document.getElementById("pList");
-
-  function clearForm(){
-    pName.value=""; pWhere.value=""; pType.value="restaurant"; pStatus.value="want"; pPrio.value="normal"; pLink.value=""; pNotes.value="";
-  }
-  function add(){
-    const name=(pName.value||"").trim();
-    if(!name) return;
-    data.unshift({
-      id:uid(),
-      name,
-      where:(pWhere.value||"").trim(),
-      type:pType.value,
-      status:pStatus.value,
-      priority:pPrio.value,
-      link:(pLink.value||"").trim(),
-      notes:(pNotes.value||"").trim(),
-      createdAt:Date.now()
-    });
-    saveJSON(LS.places, data);
-    clearForm();
-    draw();
-  }
-
-  function prioScore(p){ return p==="high"?0:p==="normal"?1:2; }
-  function typeScore(t){ const order={restaurant:0,cafe:1,dessert:2,shopping:3,activity:4,other:5}; return order[t] ?? 99; }
-
-  function draw(){
-    const q=(pSearch.value||"").trim().toLowerCase();
-    const f=pFilter.value;
-    const s=pSort.value;
-
-    let filtered=[...data];
-    if(f!=="all") filtered=filtered.filter(x=>x.status===f);
-    if(q) filtered=filtered.filter(x =>
-      (x.name||"").toLowerCase().includes(q) ||
-      (x.where||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    if(s==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(s==="prio") filtered.sort((a,b)=>prioScore(a.priority)-prioScore(b.priority));
-    if(s==="type") filtered.sort((a,b)=>typeScore(a.type)-typeScore(b.type));
-    if(s==="name") filtered.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-
-    pList.innerHTML="";
-    if(!filtered.length){ pList.innerHTML = emptyMsg("no places saved."); return; }
-
-    filtered.forEach(x=>{
-      const link = (x.link||"").trim();
-      const linkHtml = link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer" style="font-size:11px">open link</a>` : "";
-      pList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left">
-            <div style="min-width:0;flex:1">
-              <details>
-                <summary>
-                  <div class="text">${escapeHtml(x.name)} <span class="muted">· ${escapeHtml(x.type||"")}</span></div>
-                  <div class="meta">
-                    ${escapeHtml(x.status||"want")} · ${escapeHtml(x.priority||"normal")} priority
-                    ${x.where ? " · "+escapeHtml(x.where) : ""}
-                  </div>
-                </summary>
-
-                <div style="margin-top:10px">
-                  <div class="grid2" style="gap:8px">
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">status</div>
-                      <select class="select pEditStatus" data-s="${x.id}" style="width:100%">
-                        <option value="want" ${x.status==="want"?"selected":""}>want</option>
-                        <option value="planned" ${x.status==="planned"?"selected":""}>planned</option>
-                        <option value="been" ${x.status==="been"?"selected":""}>been</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">priority</div>
-                      <select class="select pEditPrio" data-p="${x.id}" style="width:100%">
-                        <option value="high" ${x.priority==="high"?"selected":""}>high</option>
-                        <option value="normal" ${x.priority==="normal"?"selected":""}>normal</option>
-                        <option value="low" ${x.priority==="low"?"selected":""}>low</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">type</div>
-                      <select class="select pEditType" data-t="${x.id}" style="width:100%">
-                        <option value="restaurant" ${x.type==="restaurant"?"selected":""}>restaurant</option>
-                        <option value="cafe" ${x.type==="cafe"?"selected":""}>cafe</option>
-                        <option value="dessert" ${x.type==="dessert"?"selected":""}>dessert</option>
-                        <option value="shopping" ${x.type==="shopping"?"selected":""}>shopping</option>
-                        <option value="activity" ${x.type==="activity"?"selected":""}>activity</option>
-                        <option value="other" ${x.type==="other"?"selected":""}>other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">where</div>
-                      <input class="input pEditWhere" data-w="${x.id}" value="${escapeHtml(x.where||"")}" style="width:100%"/>
-                    </div>
-                  </div>
-
-                  <div class="row" style="margin-top:8px">
-                    <input class="input pEditLink" data-l="${x.id}" value="${escapeHtml(x.link||"")}" placeholder="link" style="flex:1;min-width:220px" />
-                    ${linkHtml}
-                  </div>
-
-                  <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin:12px 0 6px">notes</div>
-                  <textarea class="textarea pEditNotes" data-n="${x.id}" placeholder="notes…">${escapeHtml(x.notes||"")}</textarea>
-
-                  <div class="row" style="margin-top:10px">
-                    <button class="btn small pSave" data-save="${x.id}">save</button>
-                    <button class="btn small danger pDelete" data-del="${x.id}">delete</button>
-                  </div>
-                </div>
-              </details>
-            </div>
-          </div>
-          <div class="x" title="delete">×</div>
-        </div>
-      `);
-    });
-
-    pList.querySelectorAll(".item .x").forEach(x=>{
-      x.onclick = ()=>{
-        const id = x.closest(".item").getAttribute("data-id");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.places, data);
-          draw();
-        }
-      };
-    });
-
-    pList.querySelectorAll(".pSave").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-save");
-        const it = data.find(x=>x.id===id);
-        if(!it) return;
-
-        const st = pList.querySelector(`[data-s="${id}"]`);
-        const pr = pList.querySelector(`[data-p="${id}"]`);
-        const ty = pList.querySelector(`[data-t="${id}"]`);
-        const wh = pList.querySelector(`[data-w="${id}"]`);
-        const li = pList.querySelector(`[data-l="${id}"]`);
-        const no = pList.querySelector(`[data-n="${id}"]`);
-
-        it.status = st ? st.value : it.status;
-        it.priority = pr ? pr.value : it.priority;
-        it.type = ty ? ty.value : it.type;
-        it.where = wh ? (wh.value||"").trim() : it.where;
-        it.link = li ? (li.value||"").trim() : it.link;
-        it.notes = no ? (no.value||"").trim() : it.notes;
-
-        saveJSON(LS.places, data);
-        draw();
-      };
-    });
-
-    pList.querySelectorAll(".pDelete").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-del");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.places, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("pAdd").onclick = add;
-  document.getElementById("pClear").onclick = clearForm;
-  pSearch.oninput = draw;
-  pFilter.onchange = draw;
-  pSort.onchange = draw;
-
-  draw();
-}
-
-/* ==========================
-   TRAVEL WISHLIST
-   - destination + vibe + best season + must-do
-========================== */
-function renderTravel(){
-  const data = loadJSON(LS.travel, []);
-  const total=data.length;
-  const planned=data.filter(x=>x.status==="planned").length;
-  const been=data.filter(x=>x.status==="been").length;
-  const want=total - been;
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">travel wishlist</h1>
-        <p class="subtitle">save destinations + what you want to do there.</p>
-      </div>
-    </div>
-
-    ${renderKPI({
-      a:{n: total, l:"destinations"},
-      b:{n: want, l:"want"},
-      c:{n: planned, l:"planned"},
-      d:{n: been, l:"been"}
-    })}
-
-    <div class="card pad" style="margin-top:12px">
-      <div class="grid2">
-        <div>
-          <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">add destination</div>
-          <input class="input" id="tPlace" placeholder="place (city / island / country…)" style="width:100%;margin-bottom:8px" />
-          <div class="grid2" style="gap:8px">
-            <select class="select" id="tStatus" style="width:100%">
-              <option value="want">want</option>
-              <option value="planned">planned</option>
-              <option value="been">been</option>
-            </select>
-            <input class="input" id="tSeason" placeholder="best season (summer, winter…)" style="width:100%"/>
-          </div>
-          <input class="input" id="tVibe" placeholder="vibe (beach, city, adventure, chill…)" style="width:100%;margin-top:8px" />
-          <textarea class="textarea" id="tMust" placeholder="must-do list (3 things)" style="margin-top:8px"></textarea>
-          <div class="row" style="margin-top:10px">
-            <button class="btn primary" id="tAdd">add</button>
-            <button class="btn" id="tClear">clear</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="row">
-            <input class="input" id="tSearch" placeholder="search…" style="flex:1;min-width:200px" />
-            <select class="select" id="tFilter">
-              <option value="all">all</option>
-              <option value="want">want</option>
-              <option value="planned">planned</option>
-              <option value="been">been</option>
-            </select>
-            <select class="select" id="tSort">
-              <option value="new">newest</option>
-              <option value="name">name</option>
-              <option value="status">status</option>
-            </select>
-          </div>
-          <div class="list" id="tList"></div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const tPlace=document.getElementById("tPlace");
-  const tStatus=document.getElementById("tStatus");
-  const tSeason=document.getElementById("tSeason");
-  const tVibe=document.getElementById("tVibe");
-  const tMust=document.getElementById("tMust");
-  const tSearch=document.getElementById("tSearch");
-  const tFilter=document.getElementById("tFilter");
-  const tSort=document.getElementById("tSort");
-  const tList=document.getElementById("tList");
-
-  function clearForm(){
-    tPlace.value=""; tStatus.value="want"; tSeason.value=""; tVibe.value=""; tMust.value="";
-  }
-  function add(){
-    const place=(tPlace.value||"").trim();
-    if(!place) return;
-    data.unshift({
-      id:uid(),
-      place,
-      status:tStatus.value,
-      season:(tSeason.value||"").trim(),
-      vibe:(tVibe.value||"").trim(),
-      must:(tMust.value||"").trim(),
-      createdAt:Date.now()
-    });
-    saveJSON(LS.travel, data);
-    clearForm();
-    draw();
-  }
-
-  function statusScore(s){ return s==="want"?0:s==="planned"?1:2; }
-
-  function draw(){
-    const q=(tSearch.value||"").trim().toLowerCase();
-    const f=tFilter.value;
-    const s=tSort.value;
-
-    let filtered=[...data];
-    if(f!=="all") filtered=filtered.filter(x=>x.status===f);
-    if(q) filtered=filtered.filter(x =>
-      (x.place||"").toLowerCase().includes(q) ||
-      (x.vibe||"").toLowerCase().includes(q) ||
-      (x.must||"").toLowerCase().includes(q)
-    );
-
-    if(s==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(s==="name") filtered.sort((a,b)=>(a.place||"").localeCompare(b.place||""));
-    if(s==="status") filtered.sort((a,b)=>statusScore(a.status)-statusScore(b.status));
-
-    tList.innerHTML="";
-    if(!filtered.length){ tList.innerHTML = emptyMsg("no destinations yet."); return; }
-
-    filtered.forEach(x=>{
-      tList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left">
-            <div style="min-width:0;flex:1">
-              <details>
-                <summary>
-                  <div class="text">${escapeHtml(x.place)}</div>
-                  <div class="meta">
-                    ${escapeHtml(x.status||"want")}
-                    ${x.season ? " · "+escapeHtml(x.season) : ""}
-                    ${x.vibe ? " · "+escapeHtml(x.vibe) : ""}
-                  </div>
-                </summary>
-
-                <div style="margin-top:10px">
-                  <div class="grid2" style="gap:8px">
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">status</div>
-                      <select class="select" data-s="${x.id}" style="width:100%">
-                        <option value="want" ${x.status==="want"?"selected":""}>want</option>
-                        <option value="planned" ${x.status==="planned"?"selected":""}>planned</option>
-                        <option value="been" ${x.status==="been"?"selected":""}>been</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">best season</div>
-                      <input class="input" data-se="${x.id}" value="${escapeHtml(x.season||"")}" style="width:100%"/>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">vibe</div>
-                      <input class="input" data-v="${x.id}" value="${escapeHtml(x.vibe||"")}" style="width:100%"/>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">notes</div>
-                      <input class="input" data-m="${x.id}" value="${escapeHtml((x.must||"").split("\n")[0]||"")}" placeholder="quick note" style="width:100%"/>
-                    </div>
-                  </div>
-
-                  <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin:12px 0 6px">must-do list</div>
-                  <textarea class="textarea" data-must="${x.id}" placeholder="must-do list…">${escapeHtml(x.must||"")}</textarea>
-
-                  <div class="row" style="margin-top:10px">
-                    <button class="btn small tSave" data-save="${x.id}">save</button>
-                    <button class="btn small danger tDelete" data-del="${x.id}">delete</button>
-                  </div>
-                </div>
-              </details>
-            </div>
-          </div>
-          <div class="x" title="delete">×</div>
-        </div>
-      `);
-    });
-
-    tList.querySelectorAll(".item .x").forEach(x=>{
-      x.onclick = ()=>{
-        const id = x.closest(".item").getAttribute("data-id");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.travel, data);
-          draw();
-        }
-      };
-    });
-
-    tList.querySelectorAll(".tSave").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-save");
-        const it = data.find(x=>x.id===id);
-        if(!it) return;
-
-        const st = tList.querySelector(`[data-s="${id}"]`);
-        const se = tList.querySelector(`[data-se="${id}"]`);
-        const v  = tList.querySelector(`[data-v="${id}"]`);
-        const must = tList.querySelector(`[data-must="${id}"]`);
-
-        it.status = st ? st.value : it.status;
-        it.season = se ? (se.value||"").trim() : it.season;
-        it.vibe = v ? (v.value||"").trim() : it.vibe;
-        it.must = must ? (must.value||"").trim() : it.must;
-
-        saveJSON(LS.travel, data);
-        draw();
-      };
-    });
-
-    tList.querySelectorAll(".tDelete").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-del");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.travel, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("tAdd").onclick = add;
-  document.getElementById("tClear").onclick = clearForm;
-  tSearch.oninput = draw;
-  tFilter.onchange = draw;
-  tSort.onchange = draw;
-
-  draw();
-}
-
-/* ==========================
-   BIRTHDAYS
-   - date + gift ideas + notes
-========================== */
-function renderBirthdays(){
-  const data = loadJSON(LS.birthdays, []);
-  const total=data.length;
-
-  function daysUntil(dateStr){
-    if(!dateStr) return null;
-    const now = new Date();
-    const y = now.getFullYear();
-    const d = new Date(`${y}-${dateStr}`);
-    if(isNaN(d.getTime())) return null;
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let diff = Math.round((d - today)/(24*60*60*1000));
-    if(diff < 0){
-      const next = new Date(`${y+1}-${dateStr}`);
-      diff = Math.round((next - today)/(24*60*60*1000));
-    }
-    return diff;
-  }
-
-  const upcoming = data
-    .map(x=>({ ...x, inDays: daysUntil(x.mmdd) }))
-    .filter(x=>x.inDays !== null)
-    .sort((a,b)=>a.inDays-b.inDays)
-    .slice(0,4);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">birthdays</h1>
-        <p class="subtitle">who you love + what to get them.</p>
-      </div>
-    </div>
-
-    <div class="card pad">
-      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">up next</div>
-      <div class="row" id="bUp"></div>
-    </div>
-
-    <div class="card pad" style="margin-top:12px">
-      <div class="grid2">
-        <div>
-          <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">add person</div>
-          <input class="input" id="bName" placeholder="name" style="width:100%;margin-bottom:8px" />
-          <div class="grid2" style="gap:8px">
-            <input class="input" id="bDate" placeholder="MM-DD" style="width:100%"/>
-            <select class="select" id="bRel" style="width:100%">
-              <option value="friend">friend</option>
-              <option value="family">family</option>
-              <option value="other">other</option>
-            </select>
-          </div>
-          <input class="input" id="bGift" placeholder="gift ideas (comma-separated)" style="width:100%;margin-top:8px" />
-          <textarea class="textarea" id="bNotes" placeholder="notes (likes/dislikes, sizes, favorite color…)" style="margin-top:8px"></textarea>
-          <div class="row" style="margin-top:10px">
-            <button class="btn primary" id="bAdd">add</button>
-            <button class="btn" id="bClear">clear</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="row">
-            <input class="input" id="bSearch" placeholder="search…" style="flex:1;min-width:200px" />
-            <select class="select" id="bSort">
-              <option value="soon">soonest</option>
-              <option value="name">name</option>
-              <option value="new">newest</option>
-            </select>
-          </div>
-          <div class="list" id="bList"></div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const bUp = document.getElementById("bUp");
-  bUp.innerHTML = upcoming.length ? "" : emptyMsg("no birthdays saved yet.");
-  upcoming.forEach(x=>{
-    bUp.insertAdjacentHTML("beforeend", `
-      <span class="pill" data-cat="social">
-        ${escapeHtml(x.name)} · in ${escapeHtml(String(x.inDays))}d
-      </span>
-    `);
-  });
-
-  const bName=document.getElementById("bName");
-  const bDate=document.getElementById("bDate");
-  const bRel=document.getElementById("bRel");
-  const bGift=document.getElementById("bGift");
-  const bNotes=document.getElementById("bNotes");
-  const bSearch=document.getElementById("bSearch");
-  const bSort=document.getElementById("bSort");
-  const bList=document.getElementById("bList");
-
-  function clearForm(){
-    bName.value=""; bDate.value=""; bRel.value="friend"; bGift.value=""; bNotes.value="";
-  }
-  function add(){
-    const name=(bName.value||"").trim();
-    const mmdd=(bDate.value||"").trim();
-    if(!name || !/^\d{2}-\d{2}$/.test(mmdd)) return;
-    data.unshift({
-      id:uid(),
-      name,
-      mmdd,
-      rel:bRel.value,
-      gifts:(bGift.value||"").trim(),
-      notes:(bNotes.value||"").trim(),
-      createdAt:Date.now()
-    });
-    saveJSON(LS.birthdays, data);
-    clearForm();
-    renderBirthdays();
-  }
-
-  function draw(){
-    const q=(bSearch.value||"").trim().toLowerCase();
-    const s=bSort.value;
-
-    let filtered=[...data];
-    if(q) filtered=filtered.filter(x =>
-      (x.name||"").toLowerCase().includes(q) ||
-      (x.gifts||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    if(s==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(s==="name") filtered.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-    if(s==="soon"){
-      filtered = filtered
-        .map(x=>({ ...x, inDays: daysUntil(x.mmdd) }))
-        .sort((a,b)=>(a.inDays??99999)-(b.inDays??99999));
-    }
-
-    bList.innerHTML="";
-    if(!filtered.length){ bList.innerHTML = emptyMsg("no people yet."); return; }
-
-    filtered.forEach(x=>{
-      const inDays = daysUntil(x.mmdd);
-      bList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left">
-            <div style="min-width:0;flex:1">
-              <details>
-                <summary>
-                  <div class="text">${escapeHtml(x.name)} <span class="muted">· ${escapeHtml(x.rel||"friend")}</span></div>
-                  <div class="meta">${escapeHtml(x.mmdd)}${inDays!==null ? " · in "+escapeHtml(String(inDays))+" days" : ""}</div>
-                </summary>
-
-                <div style="margin-top:10px">
-                  <div class="grid2" style="gap:8px">
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">date</div>
-                      <input class="input" data-d="${x.id}" value="${escapeHtml(x.mmdd||"")}" style="width:100%"/>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">relationship</div>
-                      <select class="select" data-r="${x.id}" style="width:100%">
-                        <option value="friend" ${x.rel==="friend"?"selected":""}>friend</option>
-                        <option value="family" ${x.rel==="family"?"selected":""}>family</option>
-                        <option value="other" ${x.rel==="other"?"selected":""}>other</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin:12px 0 6px">gift ideas</div>
-                  <input class="input" data-g="${x.id}" value="${escapeHtml(x.gifts||"")}" placeholder="gift ideas…" style="width:100%"/>
-
-                  <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin:12px 0 6px">notes</div>
-                  <textarea class="textarea" data-n="${x.id}" placeholder="notes…">${escapeHtml(x.notes||"")}</textarea>
-
-                  <div class="row" style="margin-top:10px">
-                    <button class="btn small bSave" data-save="${x.id}">save</button>
-                    <button class="btn small danger bDelete" data-del="${x.id}">delete</button>
-                  </div>
-                </div>
-              </details>
-            </div>
-          </div>
-          <div class="x" title="delete">×</div>
-        </div>
-      `);
-    });
-
-    bList.querySelectorAll(".item .x").forEach(x=>{
-      x.onclick = ()=>{
-        const id = x.closest(".item").getAttribute("data-id");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.birthdays, data);
-          draw();
-        }
-      };
-    });
-
-    bList.querySelectorAll(".bSave").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-save");
-        const it = data.find(x=>x.id===id);
-        if(!it) return;
-
-        const d = bList.querySelector(`[data-d="${id}"]`);
-        const r = bList.querySelector(`[data-r="${id}"]`);
-        const g = bList.querySelector(`[data-g="${id}"]`);
-        const n = bList.querySelector(`[data-n="${id}"]`);
-
-        const mmdd = d ? (d.value||"").trim() : it.mmdd;
-        if(!/^\d{2}-\d{2}$/.test(mmdd)) return;
-
-        it.mmdd = mmdd;
-        it.rel = r ? r.value : it.rel;
-        it.gifts = g ? (g.value||"").trim() : it.gifts;
-        it.notes = n ? (n.value||"").trim() : it.notes;
-
-        saveJSON(LS.birthdays, data);
-        renderBirthdays();
-      };
-    });
-
-    bList.querySelectorAll(".bDelete").forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute("data-del");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.birthdays, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("bAdd").onclick = add;
-  document.getElementById("bClear").onclick = clearForm;
-  bSearch.oninput = draw;
-  bSort.onchange = draw;
-
-  draw();
-}
-
-/* ==========================
-   LIFE ADMIN
-   - appointments/renewals/forms/etc.
-========================== */
-function renderLifeAdmin(){
-  const data = loadJSON(LS.lifeadmin, []);
-  const total=data.length;
-  const done=data.filter(x=>x.done).length;
-  const open=total-done;
-  const dueSoon = data.filter(x=>{
-    if(x.done || !x.due) return false;
-    const t = new Date(x.due).getTime();
-    const now = new Date(todayISO()).getTime();
-    return (t-now) <= (7*24*60*60*1000) && (t-now) >= 0;
-  }).length;
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">life admin</h1>
-        <p class="subtitle">appointments, renewals, forms, random annoying stuff.</p>
-      </div>
-    </div>
-
-    ${renderKPI({
-      a:{n: total, l:"items"},
-      b:{n: open, l:"open"},
-      c:{n: done, l:"done"},
-      d:{n: dueSoon, l:"due in 7 days"}
-    })}
-
-    <div class="card pad" style="margin-top:12px">
-      <div class="grid2">
-        <div>
-          <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">add admin item</div>
-          <input class="input" id="aTitle" placeholder="title" style="width:100%;margin-bottom:8px" />
-          <div class="grid2" style="gap:8px">
-            <select class="select" id="aType" style="width:100%">
-              <option value="appointment">appointment</option>
-              <option value="renewal">renewal</option>
-              <option value="form">form</option>
-              <option value="payment">payment</option>
-              <option value="call">call</option>
-              <option value="other">other</option>
-            </select>
-            <input class="input" id="aDue" type="date" style="width:100%"/>
-          </div>
-          <textarea class="textarea" id="aNotes" placeholder="notes (where, what to bring, link, person…)" style="margin-top:8px"></textarea>
-          <div class="row" style="margin-top:10px">
-            <button class="btn primary" id="aAdd">add</button>
-            <button class="btn" id="aClear">clear</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="row">
-            <input class="input" id="aSearch" placeholder="search…" style="flex:1;min-width:200px" />
-            <select class="select" id="aFilter">
-              <option value="open">open</option>
-              <option value="all">all</option>
+              <option value="active">active</option>
               <option value="done">done</option>
+              <option value="high">high priority</option>
             </select>
-            <select class="select" id="aSort">
-              <option value="due">due date</option>
+            <select class="select" id="gSort">
               <option value="new">newest</option>
-              <option value="type">type</option>
+              <option value="deadline">deadline</option>
+              <option value="progress">progress</option>
+              <option value="title">title</option>
             </select>
           </div>
-          <div class="list" id="aList"></div>
+
+          <div class="list" id="gList"></div>
         </div>
       </div>
     </div>
   `;
 
-  const aTitle=document.getElementById("aTitle");
-  const aType=document.getElementById("aType");
-  const aDue=document.getElementById("aDue");
-  const aNotes=document.getElementById("aNotes");
-  const aSearch=document.getElementById("aSearch");
-  const aFilter=document.getElementById("aFilter");
-  const aSort=document.getElementById("aSort");
-  const aList=document.getElementById("aList");
+  const gTitle = document.getElementById("gTitle");
+  const gCat = document.getElementById("gCat");
+  const gPriority = document.getElementById("gPriority");
+  const gDeadline = document.getElementById("gDeadline");
+  const gProgress = document.getElementById("gProgress");
+  const gSteps = document.getElementById("gSteps");
+  const gNotes = document.getElementById("gNotes");
+
+  const gSearch = document.getElementById("gSearch");
+  const gFilter = document.getElementById("gFilter");
+  const gSort = document.getElementById("gSort");
+  const gList = document.getElementById("gList");
 
   function clearForm(){
-    aTitle.value=""; aType.value="appointment"; aDue.value=""; aNotes.value="";
+    gTitle.value="";
+    gCat.value="personal";
+    gPriority.value="normal";
+    gDeadline.value="";
+    gProgress.value="";
+    gSteps.value="";
+    gNotes.value="";
   }
+
   function add(){
-    const title=(aTitle.value||"").trim();
+    const title = (gTitle.value||"").trim();
     if(!title) return;
+    let prog = Number((gProgress.value||"").trim());
+    if(!Number.isFinite(prog)) prog = 0;
+    prog = Math.max(0, Math.min(100, prog));
+
     data.unshift({
-      id:uid(),
+      id: uid(),
       title,
-      type:aType.value,
-      due:aDue.value || "",
-      notes:(aNotes.value||"").trim(),
+      category: gCat.value || "personal",
+      priority: gPriority.value || "normal",
+      deadline: gDeadline.value || "",
+      progress: prog,
+      steps: (gSteps.value||"").trim(),
+      notes: (gNotes.value||"").trim(),
       done:false,
-      createdAt:Date.now()
+      createdAt: Date.now()
     });
-    saveJSON(LS.lifeadmin, data);
+    saveJSON(LS.goals, data);
     clearForm();
     draw();
   }
 
-  function typeScore(t){ const order={appointment:0,renewal:1,form:2,payment:3,call:4,other:5}; return order[t] ?? 99; }
-
   function draw(){
-    const q=(aSearch.value||"").trim().toLowerCase();
-    const f=aFilter.value;
-    const s=aSort.value;
+    const q = (gSearch.value||"").trim().toLowerCase();
+    const f = gFilter.value;
+    const s = gSort.value;
 
-    let filtered=[...data];
-    if(f==="open") filtered=filtered.filter(x=>!x.done);
-    if(f==="done") filtered=filtered.filter(x=>!!x.done);
-    if(q) filtered=filtered.filter(x =>
-      (x.title||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
+    let filtered = [...data];
 
-    if(s==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(s==="type") filtered.sort((a,b)=>typeScore(a.type)-typeScore(b.type));
-    if(s==="due"){
-      filtered.sort((a,b)=>{
-        const ad = a.due ? new Date(a.due).getTime() : Infinity;
-        const bd = b.due ? new Date(b.due).getTime() : Infinity;
-        return ad-bd;
-      });
+    if(f==="active") filtered = filtered.filter(x=>!x.done);
+    if(f==="done") filtered = filtered.filter(x=>!!x.done);
+    if(f==="high") filtered = filtered.filter(x=>x.priority==="high" && !x.done);
+
+    if(q){
+      filtered = filtered.filter(x =>
+        (x.title||"").toLowerCase().includes(q) ||
+        (x.notes||"").toLowerCase().includes(q) ||
+        (x.steps||"").toLowerCase().includes(q)
+      );
     }
 
-    aList.innerHTML="";
-    if(!filtered.length){ aList.innerHTML = emptyMsg("no admin items."); return; }
+    if(s==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if(s==="title") filtered.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
+    if(s==="progress") filtered.sort((a,b)=>(b.progress||0)-(a.progress||0));
+    if(s==="deadline") filtered.sort((a,b)=> (a.deadline||"9999-99-99").localeCompare(b.deadline||"9999-99-99"));
+
+    gList.innerHTML = "";
+    if(!filtered.length){
+      gList.innerHTML = emptyMsg("no goals yet.");
+      return;
+    }
 
     filtered.forEach(x=>{
-      const due = x.due ? `due ${x.due}` : "no due date";
-      aList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
+      const steps = (x.steps||"").trim();
+      const stepsPreview = steps ? steps.split("\n").slice(0,3).map(s=>s.trim()).filter(Boolean).join(" · ") : "";
+      gList.insertAdjacentHTML("beforeend", `
+        <div class="item" data-id="${escapeHtml(x.id)}">
           <div class="left">
-            <input type="checkbox" class="aDone" ${x.done?"checked":""}/>
+            <input type="checkbox" class="gDone" ${x.done?"checked":""} />
             <div style="min-width:0;flex:1">
-              <details>
-                <summary>
-                  <div class="text" style="${x.done?'text-decoration:line-through;color:#9ca3af':''}">
-                    ${escapeHtml(x.title)} <span class="muted">· ${escapeHtml(x.type||"other")}</span>
-                  </div>
-                  <div class="meta">${escapeHtml(due)}</div>
-                </summary>
-
-                <div style="margin-top:10px">
-                  <div class="grid2" style="gap:8px">
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">type</div>
-                      <select class="select" data-t="${x.id}" style="width:100%">
-                        <option value="appointment" ${x.type==="appointment"?"selected":""}>appointment</option>
-                        <option value="renewal" ${x.type==="renewal"?"selected":""}>renewal</option>
-                        <option value="form" ${x.type==="form"?"selected":""}>form</option>
-                        <option value="payment" ${x.type==="payment"?"selected":""}>payment</option>
-                        <option value="call" ${x.type==="call"?"selected":""}>call</option>
-                        <option value="other" ${x.type==="other"?"selected":""}>other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">due</div>
-                      <input class="input" type="date" data-d="${x.id}" value="${escapeHtml(x.due||"")}" style="width:100%"/>
-                    </div>
-                  </div>
-
-                  <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin:12px 0 6px">notes</div>
-                  <textarea class="textarea" data-n="${x.id}" placeholder="notes…">${escapeHtml(x.notes||"")}</textarea>
-
-                  <div class="row" style="margin-top:10px">
-                    <button class="btn small aSave" data-save="${x.id}">save</button>
-                    <button class="btn small danger aDelete" data-del="${x.id}">delete</button>
-                  </div>
-                </div>
-              </details>
+              <div class="text" style="${x.done?'text-decoration:line-through;color:#9ca3af':''}">
+                <strong>${escapeHtml(x.title||"")}</strong>
+                <span style="margin-left:8px">${catPill(x.category)}</span>
+              </div>
+              <div class="meta">
+                ${escapeHtml(x.priority||"normal")} · ${x.deadline ? "deadline "+escapeHtml(x.deadline) : "no deadline"} · ${escapeHtml(String(x.progress||0))}%
+              </div>
+              ${stepsPreview ? `<div class="meta" style="margin-top:6px">${escapeHtml(stepsPreview)}${steps.split("\n").length>3?"…":""}</div>` : ""}
+              ${(x.notes||"").trim() ? `<div class="meta" style="margin-top:6px">${escapeHtml(x.notes)}</div>` : ""}
             </div>
           </div>
           <div class="x" title="delete">×</div>
@@ -1340,81 +1186,336 @@ function renderLifeAdmin(){
       `);
     });
 
-    aList.querySelectorAll(".aDone").forEach(chk=>{
+    gList.querySelectorAll(".item .x").forEach(btn=>{
+      btn.onclick = ()=>{
+        const id = btn.closest(".item").getAttribute("data-id");
+        const idx = data.findIndex(it=>it.id===id);
+        if(idx>-1){
+          data.splice(idx,1);
+          saveJSON(LS.goals, data);
+          draw();
+        }
+      };
+    });
+
+    gList.querySelectorAll(".gDone").forEach(chk=>{
       chk.onchange = ()=>{
         const id = chk.closest(".item").getAttribute("data-id");
         const it = data.find(x=>x.id===id);
         if(!it) return;
         it.done = !!chk.checked;
-        saveJSON(LS.lifeadmin, data);
+        if(it.done) it.progress = 100;
+        saveJSON(LS.goals, data);
+        draw();
+      };
+    });
+  }
+
+  document.getElementById("gAdd").onclick = add;
+  document.getElementById("gClear").onclick = clearForm;
+  gSearch.oninput = draw;
+  gFilter.onchange = draw;
+  gSort.onchange = draw;
+  gTitle.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); add(); } });
+
+  draw();
+}
+
+/* ==========================
+   HABITS (DETAILED)
+========================== */
+function renderHabits(){
+  const store = loadJSON(LS.habits, { habits:[] });
+
+  const total = store.habits.length;
+  const active = store.habits.filter(h=>!h.archived).length;
+  const archived = store.habits.filter(h=>h.archived).length;
+  const streakBest = Math.max(0, ...store.habits.map(h=>h.bestStreak||0));
+
+  app.innerHTML = `
+    <div class="topbar">
+      <div>
+        <h1 class="title">habits</h1>
+        <p class="subtitle">track daily habits + streaks. check them off per day.</p>
+      </div>
+    </div>
+
+    ${renderKPI({
+      a:{n: total, l:"habits"},
+      b:{n: active, l:"active"},
+      c:{n: archived, l:"archived"},
+      d:{n: streakBest, l:"best streak"}
+    })}
+
+    <div class="card pad" style="margin-top:12px">
+      <div class="grid2">
+        <div>
+          <div class="muted" style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">add habit</div>
+          <input class="input" id="hName" placeholder="habit name (drink water, stretch…)" style="width:100%;margin-bottom:8px" />
+          <div class="grid2" style="gap:8px">
+            <select class="select" id="hCat">
+              <option value="health">health</option>
+              <option value="personal">personal</option>
+              <option value="education">education</option>
+              <option value="athletics">athletics</option>
+              <option value="social">social</option>
+            </select>
+            <select class="select" id="hFreq">
+              <option value="daily">daily</option>
+              <option value="weekdays">weekdays</option>
+              <option value="weekends">weekends</option>
+            </select>
+          </div>
+          <textarea class="textarea" id="hNotes" placeholder="notes (why, reminders, rules…)" style="margin-top:8px"></textarea>
+          <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="hAdd">add</button>
+            <button class="btn" id="hClear">clear</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="row">
+            <input class="input" id="hSearch" placeholder="search…" style="flex:1;min-width:200px" />
+            <select class="select" id="hFilter">
+              <option value="active">active</option>
+              <option value="all">all</option>
+              <option value="archived">archived</option>
+            </select>
+          </div>
+
+          <div class="card pad" style="margin-top:10px">
+            <div class="row" style="justify-content:space-between">
+              <div>
+                <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:650">today</div>
+                <div class="muted" style="font-size:11px" id="hTodayLabel"></div>
+              </div>
+              <div class="row">
+                <button class="btn" id="hPrevDay">◀</button>
+                <button class="btn" id="hNextDay">▶</button>
+                <button class="btn" id="hToday">today</button>
+              </div>
+            </div>
+            <div class="list" id="hTodayList"></div>
+          </div>
+
+          <div class="card pad" style="margin-top:10px">
+            <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:650">all habits</div>
+            <div class="list" id="hList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const hName = document.getElementById("hName");
+  const hCat = document.getElementById("hCat");
+  const hFreq = document.getElementById("hFreq");
+  const hNotes = document.getElementById("hNotes");
+  const hSearch = document.getElementById("hSearch");
+  const hFilter = document.getElementById("hFilter");
+  const hList = document.getElementById("hList");
+  const hTodayList = document.getElementById("hTodayList");
+  const hTodayLabel = document.getElementById("hTodayLabel");
+
+  let cursor = new Date();
+  cursor.setHours(0,0,0,0);
+
+  function dateKey(d){
+    const yyyy=d.getFullYear();
+    const mm=String(d.getMonth()+1).padStart(2,"0");
+    const dd=String(d.getDate()).padStart(2,"0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  function dayName(d){
+    return d.toLocaleDateString(undefined, { weekday:"long", month:"short", day:"numeric" });
+  }
+  function isDue(h, d){
+    const day = d.getDay(); // Sun=0
+    if(h.freq==="daily") return true;
+    if(h.freq==="weekdays") return day>=1 && day<=5;
+    if(h.freq==="weekends") return day===0 || day===6;
+    return true;
+  }
+
+  function clearForm(){
+    hName.value="";
+    hCat.value="health";
+    hFreq.value="daily";
+    hNotes.value="";
+  }
+
+  function add(){
+    const name=(hName.value||"").trim();
+    if(!name) return;
+    store.habits.unshift({
+      id: uid(),
+      name,
+      category: hCat.value || "health",
+      freq: hFreq.value || "daily",
+      notes: (hNotes.value||"").trim(),
+      log: {},        // { "YYYY-MM-DD": true }
+      bestStreak: 0,
+      archived:false,
+      createdAt: Date.now()
+    });
+    saveJSON(LS.habits, store);
+    clearForm();
+    draw();
+  }
+
+  function computeStreak(h){
+    // streak ending at cursor
+    let d = new Date(cursor.getTime());
+    let streak = 0;
+    while(true){
+      if(!isDue(h,d)){
+        d.setDate(d.getDate()-1);
+        continue;
+      }
+      const k = dateKey(d);
+      if(h.log && h.log[k]){
+        streak++;
+        d.setDate(d.getDate()-1);
+      } else break;
+    }
+    return streak;
+  }
+
+  function drawToday(){
+    const ck = dateKey(cursor);
+    hTodayLabel.textContent = dayName(cursor);
+
+    const due = store.habits.filter(h=>!h.archived).filter(h=>isDue(h,cursor));
+    hTodayList.innerHTML = "";
+    if(!due.length){
+      hTodayList.innerHTML = emptyMsg("no habits due today.");
+      return;
+    }
+
+    due.forEach(h=>{
+      const checked = !!(h.log && h.log[ck]);
+      const streak = computeStreak(h);
+      hTodayList.insertAdjacentHTML("beforeend", `
+        <div class="item" data-id="${escapeHtml(h.id)}">
+          <div class="left">
+            <input type="checkbox" class="hChk" ${checked?"checked":""} />
+            <div style="min-width:0;flex:1">
+              <div class="text"><strong>${escapeHtml(h.name)}</strong> <span style="margin-left:8px">${catPill(h.category)}</span></div>
+              <div class="meta">${escapeHtml(h.freq)} · streak ${escapeHtml(String(streak))}</div>
+              ${(h.notes||"").trim() ? `<div class="meta" style="margin-top:6px">${escapeHtml(h.notes)}</div>` : ""}
+            </div>
+          </div>
+          <div class="x" title="archive">⟂</div>
+        </div>
+      `);
+    });
+
+    hTodayList.querySelectorAll(".hChk").forEach(chk=>{
+      chk.onchange = ()=>{
+        const id = chk.closest(".item").getAttribute("data-id");
+        const h = store.habits.find(x=>x.id===id);
+        if(!h) return;
+        const k = dateKey(cursor);
+        if(!h.log) h.log = {};
+        if(chk.checked) h.log[k] = true;
+        else delete h.log[k];
+
+        const streak = computeStreak(h);
+        h.bestStreak = Math.max(h.bestStreak||0, streak);
+
+        saveJSON(LS.habits, store);
         draw();
       };
     });
 
-    aList.querySelectorAll(".item .x").forEach(x=>{
-      x.onclick = ()=>{
-        const id = x.closest(".item").getAttribute("data-id");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.lifeadmin, data);
-          draw();
-        }
-      };
-    });
-
-    aList.querySelectorAll(".aSave").forEach(btn=>{
+    // archive button
+    hTodayList.querySelectorAll(".item .x").forEach(btn=>{
       btn.onclick = ()=>{
-        const id = btn.getAttribute("data-save");
-        const it = data.find(x=>x.id===id);
-        if(!it) return;
-
-        const t = aList.querySelector(`[data-t="${id}"]`);
-        const d = aList.querySelector(`[data-d="${id}"]`);
-        const n = aList.querySelector(`[data-n="${id}"]`);
-
-        it.type = t ? t.value : it.type;
-        it.due = d ? d.value : it.due;
-        it.notes = n ? (n.value||"").trim() : it.notes;
-
-        saveJSON(LS.lifeadmin, data);
+        const id = btn.closest(".item").getAttribute("data-id");
+        const h = store.habits.find(x=>x.id===id);
+        if(!h) return;
+        h.archived = true;
+        saveJSON(LS.habits, store);
         draw();
       };
     });
+  }
 
-    aList.querySelectorAll(".aDelete").forEach(btn=>{
+  function drawAll(){
+    const q=(hSearch.value||"").trim().toLowerCase();
+    const f=hFilter.value;
+
+    let filtered=[...store.habits];
+    if(f==="active") filtered=filtered.filter(h=>!h.archived);
+    if(f==="archived") filtered=filtered.filter(h=>!!h.archived);
+    if(q) filtered=filtered.filter(h=> (h.name||"").toLowerCase().includes(q) || (h.notes||"").toLowerCase().includes(q));
+
+    hList.innerHTML="";
+    if(!filtered.length){
+      hList.innerHTML = emptyMsg("no habits.");
+      return;
+    }
+
+    filtered.forEach(h=>{
+      hList.insertAdjacentHTML("beforeend", `
+        <div class="item" data-id="${escapeHtml(h.id)}">
+          <div class="left">
+            <div style="min-width:0;flex:1">
+              <div class="text"><strong>${escapeHtml(h.name)}</strong> <span style="margin-left:8px">${catPill(h.category)}</span></div>
+              <div class="meta">${escapeHtml(h.freq)} · best streak ${escapeHtml(String(h.bestStreak||0))}${h.archived?" · archived":""}</div>
+              ${(h.notes||"").trim() ? `<div class="meta" style="margin-top:6px">${escapeHtml(h.notes)}</div>` : ""}
+            </div>
+          </div>
+          <div class="x" title="delete">×</div>
+        </div>
+      `);
+    });
+
+    hList.querySelectorAll(".item .x").forEach(btn=>{
       btn.onclick = ()=>{
-        const id = btn.getAttribute("data-del");
-        const idx = data.findIndex(it=>it.id===id);
+        const id = btn.closest(".item").getAttribute("data-id");
+        const idx = store.habits.findIndex(h=>h.id===id);
         if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.lifeadmin, data);
+          store.habits.splice(idx,1);
+          saveJSON(LS.habits, store);
           draw();
         }
       };
     });
   }
 
-  document.getElementById("aAdd").onclick = add;
-  document.getElementById("aClear").onclick = clearForm;
-  aSearch.oninput = draw;
-  aFilter.onchange = draw;
-  aSort.onchange = draw;
+  function draw(){
+    drawToday();
+    drawAll();
+  }
+
+  document.getElementById("hAdd").onclick = add;
+  document.getElementById("hClear").onclick = clearForm;
+  hSearch.oninput = drawAll;
+  hFilter.onchange = drawAll;
+
+  document.getElementById("hPrevDay").onclick = ()=>{ cursor.setDate(cursor.getDate()-1); drawToday(); };
+  document.getElementById("hNextDay").onclick = ()=>{ cursor.setDate(cursor.getDate()+1); drawToday(); };
+  document.getElementById("hToday").onclick = ()=>{ cursor = new Date(); cursor.setHours(0,0,0,0); drawToday(); };
 
   draw();
 }
 
 /* ==========================
-   JOURNAL (your existing one, unchanged)
+   JOURNAL
 ========================== */
 function renderJournal(){
   const store = loadJSON(LS.journal, {});
-  const defaultDate = todayISO();
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth()+1).padStart(2,"0");
+  const dd = String(today.getDate()).padStart(2,"0");
+  const defaultDate = `${yyyy}-${mm}-${dd}`;
 
   app.innerHTML = `
     <div class="topbar">
       <div>
-        <h1 class="title">daily journal</h1>
+        <h1 class="title">journal</h1>
         <p class="subtitle">one entry per day. quick and calm.</p>
       </div>
     </div>
@@ -1457,16 +1558,16 @@ function renderJournal(){
   }
 
   function drawList(){
-    const keys = Object.keys(store).sort((a,b)=> b.localeCompare(a)).slice(0,10);
-    listEl.innerHTML = keys.length ? "" : `<div class="muted" style="font-size:12px;padding:6px 2px;">no entries yet.</div>`;
+    const keys = Object.keys(store).sort((a,b)=> b.localeCompare(a)).slice(0,12);
+    listEl.innerHTML = keys.length ? "" : emptyMsg("no entries yet.");
     keys.forEach(k=>{
-      const snippet = (store[k]||"").slice(0,120);
+      const snippet = (store[k]||"").slice(0,140);
       listEl.insertAdjacentHTML("beforeend", `
         <div class="item" style="cursor:pointer" data-date="${k}">
           <div class="left">
             <div style="min-width:0">
               <div class="text"><strong>${escapeHtml(k)}</strong></div>
-              <div class="meta">${escapeHtml(snippet)}${(store[k]||"").length>120?"…":""}</div>
+              <div class="meta">${escapeHtml(snippet)}${(store[k]||"").length>140?"…":""}</div>
             </div>
           </div>
           <div class="x" title="delete">×</div>
@@ -1499,10 +1600,81 @@ function renderJournal(){
 }
 
 /* ==========================
-   WEEKLY CALENDAR (your existing one)
-   - only change: use ev.category consistently as data-cat (already does)
-   - and nav now includes more pages
+   EXPORT / RESET
 ========================== */
+function renderDataTools(){
+  app.innerHTML = `
+    <div class="topbar">
+      <div>
+        <h1 class="title">export / reset</h1>
+        <p class="subtitle">download your data or reset a section.</p>
+      </div>
+    </div>
+
+    <div class="card pad">
+      <div class="row">
+        <button class="btn primary" id="exportAll">export all (json)</button>
+        <button class="btn" id="exportWeekly">export weekly (json)</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <select class="select" id="resetKey">
+          <option value="">choose section to reset…</option>
+          ${Object.entries(LS).map(([k,v])=>`<option value="${escapeHtml(v)}">${escapeHtml(k)}</option>`).join("")}
+        </select>
+        <button class="btn danger" id="resetBtn">reset</button>
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:10px;line-height:1.4">
+        tip: export first before resetting. reset deletes data for that section from localStorage.
+      </div>
+    </div>
+  `;
+
+  function download(filename, text){
+    const a=document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], {type:"application/json"}));
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 500);
+  }
+
+  document.getElementById("exportAll").onclick = ()=>{
+    const out = {};
+    Object.values(LS).forEach(key=>{
+      out[key] = localStorage.getItem(key);
+    });
+    download("daybyday_export_all.json", JSON.stringify(out, null, 2));
+  };
+
+  document.getElementById("exportWeekly").onclick = ()=>{
+    const out = {
+      events: loadJSON(LS.weeklyEvents, []),
+      tasks: loadJSON(LS.weeklyTasks, {})
+    };
+    download("daybyday_export_weekly.json", JSON.stringify(out, null, 2));
+  };
+
+  document.getElementById("resetBtn").onclick = ()=>{
+    const key = document.getElementById("resetKey").value;
+    if(!key) return;
+    const ok = confirm("Reset this section? This cannot be undone.");
+    if(!ok) return;
+    localStorage.removeItem(key);
+    alert("Reset done.");
+  };
+}
+
+/* ==========================
+   WEEKLY CALENDAR
+========================== */
+function startOfWeek(d){
+  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = (date.getDay()+6)%7; // Mon=0
+  date.setDate(date.getDate()-day);
+  return date;
+}
+function weekKey(date){ return date.toISOString().slice(0,10); }
 function formatRange(date){
   const end = new Date(date.getTime()); end.setDate(end.getDate()+6);
   const opts={month:"short",day:"numeric"};
@@ -1581,7 +1753,7 @@ function renderWeekly(){
     <div class="topbar">
       <div>
         <h1 class="title">weekly calendar</h1>
-        <p class="subtitle">plan your week in blocks — school, sports, social, everything.</p>
+        <p class="subtitle">plan your week in blocks — and color-code by category.</p>
       </div>
       <div>
         <div class="wk-range" id="wkRange">${escapeHtml(range)}</div>
@@ -1677,6 +1849,15 @@ function buildWeeklyColumns(){
           <option value="due">due</option>
           <option value="test">test</option>
         </select>
+
+        <select class="wk-assign-cat" data-day="${i}">
+          <option value="education">education</option>
+          <option value="athletics">athletics</option>
+          <option value="social">social</option>
+          <option value="health">health</option>
+          <option value="personal">personal</option>
+        </select>
+
         <input class="wk-assign-input" data-day="${i}" placeholder="add assignment… (press enter)" />
       </div>
 
@@ -1695,6 +1876,7 @@ function buildWeeklyColumns(){
     days.appendChild(col);
   }
 
+  // enter-to-add tasks
   document.querySelectorAll(".wk-assign-input").forEach(inp=>{
     inp.onkeydown = (e)=>{
       if(e.key==="Enter"){
@@ -1705,6 +1887,7 @@ function buildWeeklyColumns(){
     };
   });
 
+  // plus all-day event
   document.querySelectorAll("[data-add-allday]").forEach(btn=>{
     btn.onclick = ()=>{
       const day = parseInt(btn.getAttribute("data-add-allday"),10);
@@ -1712,6 +1895,7 @@ function buildWeeklyColumns(){
     };
   });
 
+  // click grid to add timed event
   document.querySelectorAll("[data-body]").forEach(body=>{
     body.onclick = (e)=>{
       const day = parseInt(body.getAttribute("data-body"),10);
@@ -1728,18 +1912,19 @@ function buildWeeklyColumns(){
 /* ----- TASKS ----- */
 function addTask(day){
   const typeEl = document.querySelector(`.wk-assign-type[data-day="${day}"]`);
+  const catEl  = document.querySelector(`.wk-assign-cat[data-day="${day}"]`);
   const inputEl = document.querySelector(`.wk-assign-input[data-day="${day}"]`);
   const text = (inputEl.value||"").trim();
   if(!text) return;
 
   const type = typeEl ? typeEl.value : "study";
+  const category = catEl ? catEl.value : "education";
   const key = weekKey(WK.weekStart);
 
   const store = getTasksStore();
   if(!store[key]) store[key]={};
   if(!store[key][day]) store[key][day]=[];
-
-  store[key][day].push({ type, text, done:false, priority:"normal" });
+  store[key][day].push({ type, text, category, done:false, priority:"normal" });
 
   saveTasksStore(store);
   inputEl.value="";
@@ -1763,6 +1948,7 @@ function renderTasks(){
       const type = t.type || "study";
       const pr = t.priority || "normal";
       const done = !!t.done;
+      const cat = t.category || (type==="study"||type==="test"||type==="due" ? "education" : "personal");
 
       const cls = ["task"];
       if(done) cls.push("done");
@@ -1773,6 +1959,8 @@ function renderTasks(){
 
       const node = document.createElement("div");
       node.className = cls.join(" ");
+      node.dataset.cat = cat;
+
       node.innerHTML = `
         <input class="task-check" type="checkbox" ${done?"checked":""} />
         <span class="task-text"><strong>${escapeHtml(type)}</strong> ${escapeHtml(t.text||"")}</span>
@@ -1889,14 +2077,12 @@ function renderEvents(){
 
   week.forEach(ev=>{
     const day = ev.day;
-    const cat = ev.category || "education";
-
     if(ev.allDay){
       const list = document.querySelector(`[data-allday="${day}"]`);
       if(!list) return;
       const pill = document.createElement("div");
       pill.className="wk-all-day-pill";
-      pill.dataset.cat = cat;
+      pill.dataset.cat = ev.category || "education";
       pill.textContent = ev.title || "all-day";
       pill.onclick = (e)=>{ e.stopPropagation(); openEventModal(ev); };
       list.appendChild(pill);
@@ -1912,7 +2098,7 @@ function renderEvents(){
 
     const box = document.createElement("div");
     box.className="event";
-    box.dataset.cat = cat;
+    box.dataset.cat = ev.category || "education";
     box.style.top = top+"px";
     box.style.height = h+"px";
     box.innerHTML = `
@@ -2011,7 +2197,7 @@ btnSave.onclick = ()=>{
     saveAllEvents(all);
   }else{
     week.push({
-      id:uid(),
+      id: uid(),
       week:key,
       day:WK.currentDay,
       title,
