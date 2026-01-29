@@ -1,3304 +1,783 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>daybyday</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>daybyday — weekly</title>
   <style>
     :root{
-      --ink:#15151e;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-
-      --chip-edu:#ffe9f4;
-      --chip-ath:#e3f9e8;
-      --chip-soc:#e7f3ff;
-      --chip-health:#fff9e5;
-      --chip-pers:#f1ecff;
-
-      --pink:#ffeaf5;          /* urgent */
-      --pink-border:#fbcfe8;
-
-      --benefit:#eef2ff;
-      --benefit-border:#c7d2fe;
-
-      --radius:14px;
-      --radius-med:10px;
-
-      --shadow: 0 10px 24px rgba(148,163,184,.22);
-
-      /* fun pops */
-      --pop1:#ffe4f1;
-      --pop2:#e8f5ff;
-      --pop3:#eafff1;
-      --pop4:#fff3d9;
-      --pop5:#efe9ff;
+      --paper-0:#fbfaf8;
+      --paper-1:#f6f2ee;
+      --paper-2:#efe7e1;
+      --paper-3:#e6dad1;
+      --blush-1:#feecef;
+      --blush-2:#fbd6de;
+      --blush-3:#f6b7c6;
+      --ink-1:#1f2937;
+      --ink-2:#4b5563;
+      --ink-3:#6b7280;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
     }
-
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text","Segoe UI", sans-serif;
-      background:#fff;
-      color:var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 600px at 20% 0%, var(--blush-1) 0%, transparent 55%),
+                  radial-gradient(1200px 600px at 90% 10%, #ffffff 0%, transparent 60%),
+                  var(--paper-0);
+      color:var(--ink-1);
     }
-
-    /* Layout */
-    .shell{
-      min-height:100vh;
+    a{color:inherit;text-decoration:none}
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 22px 16px 60px;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 14px;
+      border: 1px solid var(--paper-2);
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      position: sticky;
+      top: 14px;
+      z-index: 10;
+    }
+    .brand{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+    }
+    .brand h1{
+      margin:0;
+      font-family: ui-serif, Georgia, serif;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      font-size: 22px;
+    }
+    .brand .tag{
+      font-size: 12px;
+      color: var(--ink-3);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .btn{
+      border: 1px solid var(--paper-2);
+      background: white;
+      padding: 10px 12px;
+      border-radius: 14px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+      cursor:pointer;
+      font-size: 13px;
+      color: var(--ink-2);
+      transition: transform .05s ease, background .15s ease;
+    }
+    .btn:hover{background: var(--paper-0)}
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{
+      border-color: var(--blush-2);
+      background: linear-gradient(180deg, #fff 0%, var(--blush-1) 100%);
+      color: var(--ink-1);
+    }
+    .btn.danger{
+      border-color: #f2b0b0;
+      background: linear-gradient(180deg, #fff 0%, #ffeaea 100%);
+      color: #7a1f1f;
+    }
+    .grid{
       display:grid;
-      grid-template-columns:260px minmax(0,1fr);
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      margin-top: 16px;
     }
-    @media (max-width: 900px){
-      .shell{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr}
+      header{position:static}
     }
-
-    aside{
-      border-right:1px solid rgba(148,163,184,.25);
-      padding:22px 16px;
+    .card{
+      background: rgba(255,255,255,0.85);
+      border: 1px solid var(--paper-2);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .head{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--paper-2);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .head .title{
+      display:flex; flex-direction:column; gap:3px;
+    }
+    .card .head .title b{
+      font-weight: 600;
+      letter-spacing: .2px;
+    }
+    .card .head .title span{
+      font-size: 12px;
+      color: var(--ink-3);
+    }
+    .card .body{padding: 14px 16px}
+    .row{display:flex; gap:10px; flex-wrap: wrap; align-items:center}
+    .pill{
+      border: 1px solid var(--paper-2);
+      background: white;
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--ink-2);
+    }
+    .week{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 980px){
+      .week{grid-template-columns: 1fr}
+    }
+    .day{
+      border: 1px solid var(--paper-2);
+      background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(251,250,248,0.9) 100%);
+      border-radius: 16px;
+      padding: 10px;
+      min-height: 160px;
       display:flex;
       flex-direction:column;
-      gap:16px;
-      background:#fff;
+      gap:10px;
     }
-    @media (max-width:900px){
-      aside{
-        border-right:none;
-        border-bottom:1px solid rgba(148,163,184,.25);
-        flex-direction:row;
-        flex-wrap:wrap;
-        align-items:flex-start;
-        justify-content:space-between;
-      }
+    .dayTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:8px;
     }
-
-    .logo{
-      font-family:"Playfair Display","DM Serif Display",serif;
-      font-size:22px;
-      letter-spacing:.08em;
-      text-transform:lowercase;
+    .dow{
+      font-size: 12px;
+      color: var(--ink-3);
+      letter-spacing: .12em;
+      text-transform: uppercase;
     }
-
-    .user{
-      display:flex;align-items:center;gap:10px;
-      padding:8px 10px;border-radius:16px;background:#f8fafc;
-      max-width:220px;
+    .date{
+      font-size: 12px;
+      color: var(--ink-2);
     }
-    .avatar{width:30px;height:30px;border-radius:999px;background:#e5e7eb}
-    .hello{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9ca3af}
-    .name{font-size:13px;font-weight:650}
-    .nav{display:flex;flex-direction:column;gap:10px;min-width:220px}
-    .nav-group{display:flex;flex-direction:column;gap:6px}
-    .nav-label{
-      font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-      color:#94a3b8;margin-top:6px;
-    }
-    .link{
-      display:block;
-      padding:8px 11px;
-      border-radius:var(--radius-med);
-      font-size:13px;
-      color:#111827;
-      text-decoration:none;
-      background:transparent;
-      transition:background .15s ease,color .15s ease;
-      border:1px solid transparent;
-    }
-    .link:hover{background:#f3f4f6}
-    .link.active{background:#111827;color:#fff}
-
-    main{padding:22px 24px 30px}
-    @media (max-width:900px){main{padding:16px 14px 24px}}
-
-    .page{
-      max-width:1200px;margin:0 auto;
-    }
-    .topbar{
-      display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
-      margin-bottom:14px;
-    }
-    .title{
-      font-family:"Playfair Display","DM Serif Display",serif;
-      font-size:26px;letter-spacing:.18em;text-transform:uppercase;
-      margin:0 0 6px;
-    }
-    .subtitle{margin:0;color:var(--muted);font-size:13px}
-
-    /* Generic cards / inputs */
-    .card{
-      border:1px solid rgba(148,163,184,.35);
-      border-radius:18px;
-      background:#fff;
-      box-shadow: 0 8px 20px rgba(148,163,184,.12);
-    }
-    .card.pad{padding:14px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .input, .select, .textarea{
-      border:1px solid #e5e7eb;border-radius:12px;
-      padding:10px 12px;font-size:13px;outline:none;background:#fff;
-    }
-    .textarea{min-height:140px;resize:vertical;width:100%}
-    .btn{
-      border:1px solid #e5e7eb;background:#fff;
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:12px;letter-spacing:.12em;text-transform:uppercase;
-      cursor:pointer;
-    }
-    .btn:hover{background:#f3f4f6}
-    .btn.primary{background:#111827;color:#fff;border-color:#111827}
-    .btn.primary:hover{filter:brightness(1.03)}
-    .btn.danger{border-color:#ef4444;color:#ef4444}
-    .btn.danger:hover{background:#fff1f2}
-
-    .list{
-      display:flex;flex-direction:column;gap:8px;margin-top:10px;
-    }
-    .item{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
-      padding:10px 12px;border-radius:14px;border:1px solid #e5e7eb;
-      background:#fff;
-    }
-    .item .left{display:flex;align-items:flex-start;gap:10px;min-width:0}
-    .item .text{font-size:13px;word-break:break-word}
-    .item .meta{font-size:11px;color:#6b7280}
-    .x{cursor:pointer;font-size:16px;line-height:1;padding:0 6px;color:#6b7280}
-    .x:hover{color:#111827}
-
-    /* small utilities */
-    .muted{color:var(--muted)}
-    .pill{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:5px 10px;border-radius:999px;border:1px solid #e5e7eb;
-      font-size:11px;background:#fff;
-    }
-    .pill.pop1{background:var(--pop1)}
-    .pill.pop2{background:var(--pop2)}
-    .pill.pop3{background:var(--pop3)}
-    .pill.pop4{background:var(--pop4)}
-    .pill.pop5{background:var(--pop5)}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width:900px){.grid2{grid-template-columns:1fr}}
-    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    @media (max-width:900px){.grid3{grid-template-columns:1fr}}
-
-    /* ========= WEEKLY CALENDAR ========= */
-    .wk-range{font-size:13px;color:#4b5563;margin:0 0 6px;text-align:right}
-    .wk-nav{display:flex;gap:8px;justify-content:flex-end}
-    .wk-nav .btn{padding:8px 12px;border-radius:12px}
-
-    .wk-priority{
-      margin:14px 0 14px;
-      padding:10px 12px;
-      border-radius:16px;
-      border:1px solid #e5e7eb;
-      background:#fdfdfd;
-      display:flex;flex-direction:column;gap:6px;
-    }
-    .wk-priority-head{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
-    }
-    .wk-priority-title{
-      font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:650;
-    }
-    .wk-priority-sub{font-size:11px;color:#6b7280}
-    .wk-key{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:10px;color:#6b7280}
-    .dot{width:10px;height:10px;border-radius:999px;border:1px solid #e5e7eb;display:inline-block}
-    .dot.urgent{background:var(--pink);border-color:var(--pink-border)}
-    .dot.benefit{background:var(--benefit);border-color:var(--benefit-border)}
-    .dot.normal{background:#f9fafb;border-color:#e5e7eb}
-    .wk-priority-list{display:flex;gap:6px;flex-wrap:wrap}
-    .wk-pill{
-      border-radius:999px;
-      padding:6px 10px;
-      border:1px solid #e5e7eb;
-      background:#fff;
-      box-shadow: 0 3px 8px rgba(148,163,184,.18);
-      display:flex;flex-direction:column;gap:2px;
-      max-width:100%;
-    }
-    .wk-pill.urgent{background:var(--pink);border-color:var(--pink-border)}
-    .wk-pill.benefit{background:var(--benefit);border-color:var(--benefit-border)}
-    .wk-pill .t{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .wk-pill .m{font-size:10px;color:#6b7280;white-space:nowrap}
-    .wk-empty{font-size:11px;color:#9ca3af}
-
-    .wk-category{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-    .wk-chip{
-      border-radius:12px;padding:6px 12px;font-size:11px;
-      border:1px solid rgba(148,163,184,.5);
-      box-shadow:0 3px 8px rgba(148,163,184,.18);
-      background:#fff;
-    }
-    .wk-chip[data-cat="education"]{background:var(--chip-edu)}
-    .wk-chip[data-cat="athletics"]{background:var(--chip-ath)}
-    .wk-chip[data-cat="social"]{background:var(--chip-soc)}
-    .wk-chip[data-cat="health"]{background:var(--chip-health)}
-    .wk-chip[data-cat="personal"]{background:var(--chip-pers)}
-
-    .wk-layout{
-      border-radius:18px;
-      border:1px solid rgba(148,163,184,.35);
-      overflow:hidden;
-      display:grid;
-      grid-template-rows:auto minmax(0,1fr);
-      background:#fff;
-    }
-    .wk-top{
-      display:grid;
-      grid-template-columns:70px minmax(0,1fr);
-      border-bottom:1px solid #e5e7eb;
-    }
-    .wk-top-left{border-right:1px solid #e5e7eb}
-    .wk-top-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-    .wk-scroll{
-      display:grid;
-      grid-template-columns:70px minmax(0,1fr);
-      max-height:640px;
-      overflow-y:auto;
-    }
-    .wk-times{border-right:1px solid #e5e7eb;background:#fff}
-    .wk-time-row{
-      height:40px;border-top:1px solid #f3f4f6;
-      font-size:10px;color:#9ca3af;padding:2px 6px;
-    }
-    .wk-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-    .wk-day{border-left:1px solid #f3f4f6}
-    .wk-day:first-child{border-left:none}
-    .wk-day-header{
-      padding:8px 10px 4px;border-bottom:1px solid #e5e7eb;
-      font-size:11px;background:#fff;
-    }
-    .wk-day-name{font-weight:650}
-    .wk-day-date{font-size:10px;color:#9ca3af}
-
-    .wk-assign-row{
-      padding:6px 10px;
-      display:flex;gap:6px;align-items:center;
-      border-bottom:1px solid #f3f4f6;
-    }
-    .wk-assign-input{
-      flex:1 1 auto;min-width:0;
-      font-size:10px;border-radius:12px;border:1px solid #e5e7eb;
-      padding:6px 8px;background:#fff;
-    }
-    .wk-assign-input::placeholder{color:#cbd5e1}
-
-    .wk-assign-chips{
-      padding:6px 10px 10px;
-      border-bottom:1px solid #f3f4f6;
-      display:flex;flex-wrap:wrap;gap:6px;
-    }
-    .task{
-      border:1px solid #e5e7eb;
-      background:#f9fafb;
-      border-radius:999px;
-      padding:6px 8px;
-      font-size:10px;
-      display:inline-flex;align-items:center;gap:6px;
-      max-width:100%;
-    }
-    .task.urgent{background:var(--pink);border-color:var(--pink-border)}
-    .task.benefit{background:var(--benefit);border-color:var(--benefit-border)}
-    .task.done{opacity:.75}
-    .task.done .task-text{color:#9ca3af;text-decoration:line-through}
-    .task-check{width:11px;height:11px;cursor:pointer;flex:0 0 auto}
-    .task-dot{
-      width:10px;height:10px;border-radius:999px;border:1px solid #d1d5db;
-      background:#fff;cursor:pointer;flex:0 0 auto;
-    }
-    .task-text{
-      white-space:normal;
-      word-break:break-word;
-      max-width:200px;
-    }
-    .task-x{cursor:pointer;font-size:12px;line-height:1;padding:0 2px;color:#6b7280}
-    .task-x:hover{color:#111827}
-
-    .wk-all-day-row{
-      padding:4px 10px 6px;
-      border-bottom:1px solid #e5e7eb;
-      display:flex;gap:6px;align-items:center;font-size:10px;
-    }
-    .wk-all-day-list{flex:1;display:flex;flex-wrap:wrap;gap:4px}
-    .wk-all-day-pill{
-      border-radius:12px;padding:3px 8px;font-size:10px;
-      background:#e0f2fe;border:1px solid #bfdbfe;cursor:pointer;
-    }
-    .wk-all-day-pill[data-cat="education"]{background:var(--chip-edu);border-color:#f9a8d4}
-    .wk-all-day-pill[data-cat="athletics"]{background:var(--chip-ath);border-color:#86efac}
-    .wk-all-day-pill[data-cat="social"]{background:var(--chip-soc);border-color:#bfdbfe}
-    .wk-all-day-pill[data-cat="health"]{background:var(--chip-health);border-color:#facc15}
-    .wk-all-day-pill[data-cat="personal"]{background:var(--chip-pers);border-color:#c4b5fd}
-    .wk-all-day-add{
-      border-radius:12px;border:1px solid #e5e7eb;background:#fff;width:22px;height:22px;
-      display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;
-    }
-    .wk-all-day-add:hover{background:#f3f4f6}
-
-    .wk-day-body{
-      position:relative;height:960px;
-      background-image:repeating-linear-gradient(to bottom,#f3f4f6 0,#f3f4f6 1px,transparent 1px,transparent 40px);
-    }
+    .events{display:flex; flex-direction:column; gap:8px; flex:1}
     .event{
-      position:absolute;left:7%;right:7%;
-      border-radius:12px;padding:4px 6px;font-size:11px;
-      background:#e7f3ff;border:1px solid #bfdbfe;
-      box-shadow:0 6px 14px rgba(148,163,184,.45);
-      cursor:pointer;overflow:hidden;
-    }
-    .event[data-cat="education"]{background:var(--chip-edu);border-color:#f9a8d4}
-    .event[data-cat="athletics"]{background:var(--chip-ath);border-color:#86efac}
-    .event[data-cat="social"]{background:var(--chip-soc);border-color:#bfdbfe}
-    .event[data-cat="health"]{background:var(--chip-health);border-color:#facc15}
-    .event[data-cat="personal"]{background:var(--chip-pers);border-color:#c4b5fd}
-    .event .et{font-weight:600}
-    .event .em{font-size:10px;color:#4b5563}
-
-    /* Modal */
-    .overlay{
-      position:fixed;inset:0;background:rgba(15,23,42,.2);
-      display:none;align-items:center;justify-content:center;z-index:50;
-    }
-    .overlay.show{display:flex}
-    .modal{
-      width:100%;max-width:460px;background:#fff;border-radius:18px;
-      box-shadow:0 24px 60px rgba(15,23,42,.45);
-      padding:16px 16px 14px;
-      margin:0 12px;
-    }
-    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-    .modal-title{font-size:14px;font-weight:700}
-    .close{border:none;background:none;font-size:18px;cursor:pointer}
-    .field{display:flex;gap:8px;align-items:center;margin-bottom:10px}
-    .field label{flex:0 0 70px;font-size:11px;color:#6b7280}
-    .field .input,.field .select{flex:1}
-    .foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
-    .del{border:none;background:none;font-size:11px;color:#ef4444;cursor:pointer}
-    .save{border:none;border-radius:12px;padding:8px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:#111827;color:#fff;cursor:pointer}
-
-    /* lifestyle home */
-    .life-grid{
-      display:grid;
-      grid-template-columns:repeat(3, minmax(0,1fr));
-      gap:12px;
-    }
-    @media (max-width:900px){.life-grid{grid-template-columns:1fr}}
-    .tile{
-      border-radius:18px;
-      border:1px solid rgba(148,163,184,.35);
-      background:#fff;
-      box-shadow:0 8px 18px rgba(148,163,184,.14);
-      padding:14px;
+      border: 1px solid var(--paper-2);
+      border-left: 4px solid var(--blush-3);
+      background: rgba(255,255,255,0.95);
+      border-radius: 14px;
+      padding: 8px 8px 8px 10px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
       cursor:pointer;
-      transition:transform .12s ease, box-shadow .12s ease;
-      position:relative;
+      transition: transform .05s ease;
+    }
+    .event:active{transform: translateY(1px)}
+    .event .left{display:flex; flex-direction:column; gap:2px}
+    .event .name{font-size: 13px; font-weight: 600; color: var(--ink-1)}
+    .event .meta{font-size: 12px; color: var(--ink-3)}
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size: 11px;
+      color: var(--ink-2);
+      border: 1px solid var(--paper-2);
+      background: white;
+      padding: 4px 8px;
+      border-radius: 999px;
+      width: fit-content;
+    }
+    .dot{
+      width: 10px; height: 10px; border-radius: 999px;
+      background: var(--blush-3);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .addSmall{
+      width:100%;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px dashed var(--paper-3);
+      background: rgba(255,255,255,0.6);
+      cursor:pointer;
+      color: var(--ink-2);
+      font-size: 12px;
+    }
+    .addSmall:hover{background: rgba(255,255,255,0.9)}
+    .section{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    label{font-size: 12px; color: var(--ink-3)}
+    input, textarea, select{
+      width:100%;
+      border: 1px solid var(--paper-2);
+      background: rgba(255,255,255,0.95);
+      border-radius: 14px;
+      padding: 10px 10px;
+      font-size: 13px;
+      color: var(--ink-1);
+      outline:none;
+    }
+    textarea{min-height: 90px; resize: vertical}
+    .two{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .three{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 980px){
+      .two,.three{grid-template-columns:1fr}
+    }
+    .muted{color:var(--ink-3); font-size:12px}
+    .divider{height:1px; background: var(--paper-2); margin: 10px 0}
+    .modalOverlay{
+      position:fixed; inset:0;
+      background: rgba(17,24,39,0.35);
+      display:none;
+      align-items:center; justify-content:center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .modalOverlay.show{display:flex}
+    .modal{
+      width: min(560px, 100%);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--paper-2);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       overflow:hidden;
     }
-    .tile:hover{
-      transform:translateY(-1px);
-      box-shadow:0 12px 24px rgba(148,163,184,.22);
+    .modal .head{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--paper-2);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
     }
-    .tile .t1{
-      font-weight:750;
-      font-size:13px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
+    .modal .head b{font-family: ui-serif, Georgia, serif; font-size:16px}
+    .modal .body{padding: 14px 16px}
+    .rightActions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    footer{
+      margin-top: 14px;
+      color: var(--ink-3);
+      font-size: 12px;
+      text-align:center;
     }
-    .tile .t2{
-      margin-top:6px;
-      font-size:12px;
-      color:#6b7280;
-    }
-    .tile .bg{
-      position:absolute;inset:auto -30px -40px auto;
-      width:140px;height:140px;border-radius:999px;
-      filter:blur(0px);
-      opacity:.55;
-    }
-    .bg.pop1{background:var(--pop1)}
-    .bg.pop2{background:var(--pop2)}
-    .bg.pop3{background:var(--pop3)}
-    .bg.pop4{background:var(--pop4)}
-    .bg.pop5{background:var(--pop5)}
   </style>
 </head>
-
 <body>
-<div class="shell">
-  <aside>
-    <div>
-      <div class="logo">daybyday</div>
-      <div class="user">
-        <div class="avatar"></div>
-        <div>
-          <div class="hello">welcome back</div>
-          <div class="name" id="userName">your name</div>
-        </div>
-      </div>
-    </div>
-
-    <nav class="nav" id="nav">
-      <!-- built dynamically -->
-    </nav>
-  </aside>
-
-  <main>
-    <div id="app" class="page"></div>
-  </main>
-</div>
-
-<!-- EVENT MODAL -->
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title" id="modalTitle">new event</div>
-      <button class="close" id="closeModal">×</button>
-    </div>
-
-    <div class="field">
-      <label>title</label>
-      <input class="input" id="evTitle" placeholder="practice, dinner, meeting…" />
-    </div>
-
-    <div class="field">
-      <label>time</label>
-      <input class="input" id="evStart" placeholder="4:00 pm" />
-      <input class="input" id="evEnd" placeholder="5:30 pm" />
-    </div>
-
-    <div class="field">
-      <label>category</label>
-      <select class="select" id="evCat">
-        <option value="education">education</option>
-        <option value="athletics">athletics</option>
-        <option value="social">social</option>
-        <option value="health">health</option>
-        <option value="personal">personal</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>repeat</label>
-      <select class="select" id="evRepeat">
-        <option value="none">none</option>
-        <option value="weekly">weekly</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label></label>
-      <label style="display:flex;gap:8px;align-items:center;font-size:11px;color:#4b5563;">
-        <input type="checkbox" id="evAllDay" />
-        all day
-      </label>
-    </div>
-
-    <div class="foot">
-      <button class="del" id="deleteEvent">delete</button>
-      <button class="save" id="saveEvent">save</button>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ==========================
-   STORAGE KEYS
-========================== */
-const LS = {
-  name: "daybyday_profile_name",
-  weeklyEvents: "daybyday_weekly_events_v4",
-  weeklyTasks:  "daybyday_weekly_tasks_v2", /* bumped version */
-  goals: "daybyday_goals_v2",
-
-  journal:"daybyday_journal_v2",
-
-  lifestylePrefs:"daybyday_lifestyle_prefs_v1",
-
-  movies:"daybyday_movies_v2",
-  shows:"daybyday_shows_v1",
-  books:"daybyday_books_v2",
-  music:"daybyday_music_v1",
-  podcasts:"daybyday_podcasts_v1",
-  obsessions:"daybyday_obsessions_v1",
-
-  places:"daybyday_places_v1",
-  orders:"daybyday_orders_v1",
-  outfits:"daybyday_outfits_v1",
-  eventsIdeas:"daybyday_event_ideas_v1",
-  gifts:"daybyday_gifts_v1",
-
-  wishlist:"daybyday_wishlist_v2",
-  habits:"daybyday_habits_v1",
-  sleep:"daybyday_sleep_v1",
-  movement:"daybyday_movement_v1",
-  notes:"daybyday_notes_v1",
-  spending:"daybyday_spending_v1"
-};
-
-function loadJSON(key, fallback){
-  try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-  catch(e){ return fallback; }
-}
-function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
-function escapeHtml(s){
-  return (s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-}
-function uid(){
-  return "id_"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-}
-
-/* ==========================
-   NAME
-========================== */
-(function initName(){
-  const el = document.getElementById("userName");
-  const n = localStorage.getItem(LS.name) || "your name";
-  el.textContent = n;
-})();
-
-/* ==========================
-   ROUTER
-========================== */
-const app = document.getElementById("app");
-
-const ALL_LIFESTYLE_PAGES = [
-  { id:"lifestyle", route:"/lifestyle", label:"lifestyle home", group:"lifestyle", pop:"pop2", desc:"your hub + page picker" },
-
-  { id:"goals", route:"/goals", label:"goals hub", group:"planning", pop:"pop5", desc:"big goals + steps + tasks" },
-  { id:"habits", route:"/habits", label:"habits", group:"lifestyle", pop:"pop3", desc:"streaks + check-ins" },
-  { id:"wishlist", route:"/wishlist", label:"wishlist", group:"lifestyle", pop:"pop1", desc:"save items + links" },
-  { id:"journal", route:"/journal", label:"daily journal", group:"lifestyle", pop:"pop4", desc:"one entry per day" },
-
-  { id:"movies", route:"/movies", label:"movies", group:"lifestyle", pop:"pop2", desc:"watchlist + ratings" },
-  { id:"shows", route:"/shows", label:"shows", group:"lifestyle", pop:"pop3", desc:"current shows tracker" },
-  { id:"books", route:"/books", label:"books", group:"lifestyle", pop:"pop5", desc:"reading list + notes" },
-  { id:"music", route:"/music", label:"music", group:"lifestyle", pop:"pop1", desc:"songs + albums + moods" },
-  { id:"podcasts", route:"/podcasts", label:"podcasts", group:"lifestyle", pop:"pop4", desc:"episodes to save" },
-  { id:"obsessions", route:"/obsessions", label:"monthly obsessions", group:"lifestyle", pop:"pop2", desc:"your current favorites" },
-
-  { id:"places", route:"/places", label:"places to try", group:"lifestyle", pop:"pop3", desc:"restaurants + cafes" },
-  { id:"orders", route:"/orders", label:"what to order", group:"lifestyle", pop:"pop4", desc:"saved orders" },
-  { id:"outfits", route:"/outfits", label:"outfit ideas", group:"lifestyle", pop:"pop5", desc:"lookbook board" },
-  { id:"eventsIdeas", route:"/event-ideas", label:"event ideas", group:"lifestyle", pop:"pop1", desc:"hangouts + parties" },
-  { id:"gifts", route:"/gifts", label:"gift ideas", group:"lifestyle", pop:"pop2", desc:"gift brain dump" },
-
-  { id:"sleep", route:"/sleep", label:"sleep tracker", group:"lifestyle", pop:"pop4", desc:"simple + calm" },
-  { id:"movement", route:"/movement", label:"movement", group:"lifestyle", pop:"pop3", desc:"workouts + log" },
-  { id:"notes", route:"/notes", label:"notes vault", group:"lifestyle", pop:"pop5", desc:"everything goes here" },
-  { id:"spending", route:"/spending", label:"spending log", group:"lifestyle", pop:"pop1", desc:"cute money notes" }
-];
-
-const DEFAULT_ENABLED = [
-  "/weekly",
-  "/lifestyle",
-  "/goals",
-  "/habits",
-  "/wishlist",
-  "/journal",
-  "/movies",
-  "/shows",
-  "/books",
-  "/places",
-  "/outfits",
-  "/notes"
-];
-
-function getPrefs(){
-  const prefs = loadJSON(LS.lifestylePrefs, null);
-  if(!prefs){
-    const p = { enabled: DEFAULT_ENABLED };
-    saveJSON(LS.lifestylePrefs, p);
-    return p;
-  }
-  return prefs;
-}
-function setPrefs(p){
-  saveJSON(LS.lifestylePrefs, p);
-}
-
-function buildNav(){
-  const nav = document.getElementById("nav");
-  const prefs = getPrefs();
-
-  const enabled = new Set(prefs.enabled || DEFAULT_ENABLED);
-
-  const planningLinks = [
-    { route:"/weekly", label:"weekly calendar" },
-    { route:"/goals", label:"goals hub" }
-  ];
-
-  const lifestyleLinks = ALL_LIFESTYLE_PAGES
-    .filter(x=>x.route!=="/goals" && x.route!=="/lifestyle")
-    .map(x=>({ route:x.route, label:x.label }));
-
-  nav.innerHTML = `
-    <div class="nav-group">
-      <div class="nav-label">planning</div>
-      ${planningLinks.map(l=>`
-        <a class="link" href="#${l.route}" data-route="${l.route}">${escapeHtml(l.label)}</a>
-      `).join("")}
-    </div>
-
-    <div class="nav-group">
-      <div class="nav-label">lifestyle</div>
-      ${enabled.has("/lifestyle") ? `<a class="link" href="#/lifestyle" data-route="/lifestyle">lifestyle home</a>` : ""}
-      ${lifestyleLinks
-        .filter(l=> enabled.has(l.route))
-        .map(l=>`<a class="link" href="#${l.route}" data-route="${l.route}">${escapeHtml(l.label)}</a>`)
-        .join("")}
-    </div>
-  `;
-}
-
-const routes = {
-  "/weekly": renderWeekly,
-  "/lifestyle": renderLifestyleHome,
-  "/goals": renderGoalsHub,
-  "/habits": renderHabits,
-  "/wishlist": renderWishlist,
-  "/journal": renderJournal,
-
-  "/movies": renderMovies,
-  "/shows": renderShows,
-  "/books": renderBooks,
-  "/music": renderMusic,
-  "/podcasts": renderPodcasts,
-  "/obsessions": renderObsessions,
-
-  "/places": renderPlaces,
-  "/orders": renderOrders,
-  "/outfits": renderOutfits,
-  "/event-ideas": renderEventIdeas,
-  "/gifts": renderGifts,
-
-  "/sleep": renderSleep,
-  "/movement": renderMovement,
-  "/notes": renderNotesVault,
-  "/spending": renderSpending
-};
-
-function getRoute(){
-  const h = (location.hash || "#/weekly").replace("#","");
-  return h.startsWith("/") ? h : "/weekly";
-}
-function setActiveNav(route){
-  document.querySelectorAll(".link[data-route]").forEach(a=>{
-    a.classList.toggle("active", a.getAttribute("data-route") === route);
-  });
-}
-function navigate(){
-  buildNav();
-  const r = getRoute();
-  setActiveNav(r);
-  (routes[r] || routes["/weekly"])();
-}
-window.addEventListener("hashchange", navigate);
-
-/* ==========================
-   REUSABLE UI HELPERS
-========================== */
-function renderKPI({a,b,c,d}){
-  return `
-    <div class="grid3" style="margin-top:10px">
-      <div class="card pad" style="background:var(--pop2)">
-        <div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4b5563">total</div>
-        <div style="font-size:22px;font-weight:800">${a.n}</div>
-        <div class="muted" style="font-size:12px">${escapeHtml(a.l)}</div>
-      </div>
-      <div class="card pad" style="background:var(--pop3)">
-        <div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4b5563">${escapeHtml(b.l)}</div>
-        <div style="font-size:22px;font-weight:800">${b.n}</div>
-        <div class="muted" style="font-size:12px">right now</div>
-      </div>
-      <div class="card pad" style="background:var(--pop5)">
-        <div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4b5563">${escapeHtml(c.l)}</div>
-        <div style="font-size:22px;font-weight:800">${c.n}</div>
-        <div class="muted" style="font-size:12px">tracked</div>
-      </div>
-      <div class="card pad" style="background:var(--pop1)">
-        <div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4b5563">${escapeHtml(d.l)}</div>
-        <div style="font-size:22px;font-weight:800">${d.n}</div>
-        <div class="muted" style="font-size:12px">this week</div>
-      </div>
-    </div>
-  `;
-}
-function catPill(cat){
-  const map = {
-    education:["education","pop2"],
-    athletics:["athletics","pop3"],
-    social:["social","pop1"],
-    health:["health","pop4"],
-    personal:["personal","pop5"]
-  };
-  const v = map[cat] || ["personal","pop5"];
-  return `<span class="pill ${v[1]}">${escapeHtml(v[0])}</span>`;
-}
-
-/* ==========================
-   LIFESTYLE HOME + PICKER
-========================== */
-function renderLifestyleHome(){
-  const prefs = getPrefs();
-  const enabled = new Set(prefs.enabled || DEFAULT_ENABLED);
-
-  const lifestylePages = ALL_LIFESTYLE_PAGES
-    .filter(x=>x.route!=="/goals")
-    .filter(x=>x.route!=="/weekly")
-    .filter(x=>x.route!=="/lifestyle"); // we add separately
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">lifestyle</h1>
-        <p class="subtitle">pick your pages. keep it fun. keep it you.</p>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>daybyday</h1>
+        <div class="tag">weekly</div>
       </div>
       <div class="row">
-        <button class="btn" id="openCustomize">customize pages</button>
+        <button class="btn" id="prevWeek">←</button>
+        <div class="pill" id="weekLabel">Week</div>
+        <button class="btn" id="nextWeek">→</button>
+        <button class="btn primary" id="newEventBtn">New event</button>
       </div>
-    </div>
+    </header>
 
-    <div class="card pad" style="background:linear-gradient(135deg, var(--pop2), var(--pop5)); border:none">
-      <div style="font-weight:800;font-size:14px;letter-spacing:.12em;text-transform:uppercase">quick jump</div>
-      <div class="muted" style="font-size:12px;margin-top:4px">your enabled pages show here.</div>
-    </div>
-
-    <div class="life-grid" style="margin-top:12px" id="lifeGrid"></div>
-
-    <div class="card pad" style="margin-top:12px">
-      <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:6px">tip</div>
-      <div class="muted" style="font-size:13px">
-        you can turn pages on/off anytime. your data stays saved.
-      </div>
-    </div>
-
-    <div class="overlay" id="customOverlay" style="display:none">
-      <div class="modal" style="max-width:520px">
-        <div class="modal-head">
-          <div class="modal-title">customize lifestyle pages</div>
-          <button class="close" id="closeCustomize">×</button>
-        </div>
-
-        <div class="muted" style="font-size:12px;margin-bottom:10px">
-          toggle what you want in your sidebar.
-        </div>
-
-        <div class="card pad" style="max-height:420px;overflow:auto;background:#f8fafc">
-          <div id="toggleList" style="display:grid;gap:8px"></div>
-        </div>
-
-        <div class="foot" style="margin-top:10px">
-          <button class="btn" id="enableAll">enable all</button>
-          <button class="save" id="saveCustomize">save</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const grid = document.getElementById("lifeGrid");
-  const enabledPages = ALL_LIFESTYLE_PAGES
-    .filter(x=> enabled.has(x.route))
-    .filter(x=> x.route!=="/weekly")
-    .filter(x=> x.route!=="/lifestyle"); // show lifestyle pages
-
-  grid.innerHTML = enabledPages.length ? "" : `<div class="muted">no lifestyle pages enabled.</div>`;
-
-  enabledPages.forEach(p=>{
-    const tile = document.createElement("div");
-    tile.className = "tile";
-    tile.innerHTML = `
-      <div class="t1">${escapeHtml(p.label)}</div>
-      <div class="t2">${escapeHtml(p.desc || "")}</div>
-      <div class="bg ${p.pop||"pop2"}"></div>
-    `;
-    tile.onclick = ()=> location.hash = "#"+p.route;
-    grid.appendChild(tile);
-  });
-
-  // customize modal
-  const customOverlay = document.getElementById("customOverlay");
-  const openCustomize = document.getElementById("openCustomize");
-  const closeCustomize = document.getElementById("closeCustomize");
-  const toggleList = document.getElementById("toggleList");
-
-  function open(){
-    customOverlay.style.display="flex";
-    drawToggles();
-  }
-  function close(){
-    customOverlay.style.display="none";
-  }
-  openCustomize.onclick = open;
-  closeCustomize.onclick = close;
-  customOverlay.addEventListener("click",(e)=>{ if(e.target===customOverlay) close(); });
-
-  function drawToggles(){
-    toggleList.innerHTML="";
-
-    const pages = ALL_LIFESTYLE_PAGES
-      .filter(x=> x.route!=="/weekly")
-      .filter(x=> x.route!=="/goals"); // keep goals in planning group
-
-    pages.forEach(p=>{
-      const on = enabled.has(p.route);
-      const row = document.createElement("div");
-      row.className="item";
-      row.innerHTML = `
-        <div class="left" style="flex:1">
-          <div style="min-width:0">
-            <div class="text" style="font-weight:700">${escapeHtml(p.label)}</div>
-            <div class="meta">${escapeHtml(p.desc || "")}</div>
-          </div>
-        </div>
-        <div>
-          <label style="display:flex;gap:8px;align-items:center;font-size:12px">
-            <input type="checkbox" ${on?"checked":""} data-route="${p.route}">
-            on
-          </label>
-        </div>
-      `;
-      toggleList.appendChild(row);
-    });
-  }
-
-  document.getElementById("enableAll").onclick = ()=>{
-    const p = getPrefs();
-    const allRoutes = ALL_LIFESTYLE_PAGES
-      .filter(x=> x.route!=="/weekly")
-      .filter(x=> x.route!=="/goals")
-      .map(x=>x.route);
-
-    // keep planning routes too
-    const next = Array.from(new Set([ ...p.enabled, ...allRoutes, "/lifestyle" ]));
-    p.enabled = next;
-    setPrefs(p);
-    navigate();
-  };
-
-  document.getElementById("saveCustomize").onclick = ()=>{
-    const checks = toggleList.querySelectorAll("input[type=checkbox][data-route]");
-    const p = getPrefs();
-
-    const keepPlanning = new Set(["/weekly","/goals"]);
-    const next = new Set([...p.enabled].filter(x=>keepPlanning.has(x)));
-
-    checks.forEach(ch=>{
-      const route = ch.getAttribute("data-route");
-      if(ch.checked) next.add(route);
-    });
-
-    // if any lifestyle pages enabled, keep lifestyle home enabled too
-    const hasAnyLifestyle = Array.from(next).some(r=> r!=="/weekly" && r!=="/goals");
-    if(hasAnyLifestyle) next.add("/lifestyle");
-
-    p.enabled = Array.from(next);
-    setPrefs(p);
-    close();
-    navigate();
-  };
-}
-
-/* ==========================
-   GOALS HUB (different layout)
-========================== */
-function renderGoalsHub(){
-  const data = loadJSON(LS.goals, []);
-  const active = data.filter(g=>g.status!=="done").length;
-  const done = data.filter(g=>g.status==="done").length;
-  const withSteps = data.filter(g=>(g.steps||[]).length>0).length;
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">goals hub</h1>
-        <p class="subtitle">one place for every goal. break it down. move it forward.</p>
-      </div>
-    </div>
-
-    ${renderKPI({
-      a:{n:data.length,l:"goals"},
-      b:{n:active,l:"active"},
-      c:{n:done,l:"done"},
-      d:{n:withSteps,l:"with steps"}
-    })}
-
-    <div class="grid2" style="margin-top:12px">
-      <div class="card pad" style="background:var(--pop5)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:750;margin-bottom:8px">
-          add a goal
-        </div>
-        <input class="input" id="gTitle" placeholder="goal title" style="width:100%;margin-bottom:8px" />
-        <textarea class="textarea" id="gWhy" placeholder="why do you want this? (optional)"></textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="gAdd">add goal</button>
-          <button class="btn" id="gClear">clear</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="row">
-          <input class="input" id="gSearch" placeholder="search goals…" style="flex:1;min-width:220px" />
-          <select class="select" id="gFilter">
-            <option value="all">all</option>
-            <option value="active">active</option>
-            <option value="done">done</option>
-          </select>
-        </div>
-        <div class="list" id="gList"></div>
-      </div>
-    </div>
-
-    <div class="overlay" id="goalOverlay" style="display:none">
-      <div class="modal" style="max-width:560px">
-        <div class="modal-head">
-          <div class="modal-title" id="goalModalTitle">goal</div>
-          <button class="close" id="goalClose">×</button>
-        </div>
-
-        <div class="field">
-          <label>title</label>
-          <input class="input" id="goalEditTitle" />
-        </div>
-
-        <div class="field" style="align-items:flex-start">
-          <label>why</label>
-          <textarea class="textarea" id="goalEditWhy" style="min-height:90px"></textarea>
-        </div>
-
-        <div class="card pad" style="background:#f8fafc">
-          <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:750;margin-bottom:8px">
-            steps
+    <div class="grid">
+      <!-- LEFT: Weekly Calendar -->
+      <section class="card">
+        <div class="head">
+          <div class="title">
+            <b>Your week</b>
+            <span>Click a day to add, click an event to edit.</span>
           </div>
           <div class="row">
-            <input class="input" id="stepText" placeholder="add a step…" style="flex:1;min-width:220px" />
-            <button class="btn" id="addStep">add</button>
+            <span class="pill" id="todayPill"></span>
           </div>
-          <div class="list" id="stepList"></div>
         </div>
-
-        <div class="foot" style="margin-top:10px">
-          <button class="del" id="goalDelete">delete</button>
-          <button class="save" id="goalSave">save</button>
+        <div class="body">
+          <div class="week" id="weekGrid"></div>
         </div>
-      </div>
-    </div>
-  `;
+      </section>
 
-  const gTitle = document.getElementById("gTitle");
-  const gWhy = document.getElementById("gWhy");
-  const gSearch = document.getElementById("gSearch");
-  const gFilter = document.getElementById("gFilter");
-  const gList = document.getElementById("gList");
-
-  function clearForm(){ gTitle.value=""; gWhy.value=""; }
-
-  function add(){
-    const title=(gTitle.value||"").trim();
-    if(!title) return;
-    data.unshift({
-      id: uid(),
-      title,
-      why:(gWhy.value||"").trim(),
-      status:"active",
-      steps:[],
-      createdAt: Date.now()
-    });
-    saveJSON(LS.goals, data);
-    clearForm();
-    draw();
-  }
-
-  document.getElementById("gAdd").onclick = add;
-  document.getElementById("gClear").onclick = clearForm;
-
-  // modal
-  const overlay = document.getElementById("goalOverlay");
-  const goalClose = document.getElementById("goalClose");
-  const goalModalTitle = document.getElementById("goalModalTitle");
-  const goalEditTitle = document.getElementById("goalEditTitle");
-  const goalEditWhy = document.getElementById("goalEditWhy");
-  const stepText = document.getElementById("stepText");
-  const stepList = document.getElementById("stepList");
-  const addStep = document.getElementById("addStep");
-  const goalSave = document.getElementById("goalSave");
-  const goalDelete = document.getElementById("goalDelete");
-
-  let editingId=null;
-
-  function openGoal(id){
-    editingId=id;
-    const g = data.find(x=>x.id===id);
-    if(!g) return;
-
-    goalModalTitle.textContent = "goal details";
-    goalEditTitle.value = g.title || "";
-    goalEditWhy.value = g.why || "";
-    overlay.style.display="flex";
-    drawSteps();
-  }
-  function closeGoal(){ overlay.style.display="none"; editingId=null; }
-  goalClose.onclick = closeGoal;
-  overlay.addEventListener("click",(e)=>{ if(e.target===overlay) closeGoal(); });
-
-  function drawSteps(){
-    const g = data.find(x=>x.id===editingId);
-    if(!g) return;
-    stepList.innerHTML="";
-    if(!(g.steps||[]).length){
-      stepList.innerHTML = `<div class="muted" style="font-size:12px;padding:6px 2px;">no steps yet.</div>`;
-      return;
-    }
-    g.steps.forEach((s, idx)=>{
-      stepList.insertAdjacentHTML("beforeend", `
-        <div class="item">
-          <div class="left">
-            <input type="checkbox" class="chk" ${s.done?"checked":""} data-idx="${idx}">
-            <div style="min-width:0">
-              <div class="text" style="${s.done?'text-decoration:line-through;color:#9ca3af':''}">${escapeHtml(s.text||"")}</div>
-            </div>
+      <!-- RIGHT: Aesthetic / categories / quick lists -->
+      <aside class="card">
+        <div class="head">
+          <div class="title">
+            <b>Soft structure</b>
+            <span>Categories + quick notes (saved locally).</span>
           </div>
-          <div class="x" data-del="${idx}">×</div>
         </div>
-      `);
-    });
-
-    stepList.querySelectorAll(".chk").forEach(ch=>{
-      ch.onchange=()=>{
-        const i=parseInt(ch.getAttribute("data-idx"),10);
-        g.steps[i].done = !!ch.checked;
-        saveJSON(LS.goals, data);
-        drawSteps();
-      };
-    });
-    stepList.querySelectorAll("[data-del]").forEach(btn=>{
-      btn.onclick=()=>{
-        const i=parseInt(btn.getAttribute("data-del"),10);
-        g.steps.splice(i,1);
-        saveJSON(LS.goals, data);
-        drawSteps();
-      };
-    });
-  }
-
-  addStep.onclick = ()=>{
-    const g = data.find(x=>x.id===editingId);
-    if(!g) return;
-    const t=(stepText.value||"").trim();
-    if(!t) return;
-    g.steps.push({ text:t, done:false });
-    stepText.value="";
-    saveJSON(LS.goals, data);
-    drawSteps();
-  };
-
-  goalSave.onclick = ()=>{
-    const g = data.find(x=>x.id===editingId);
-    if(!g) return;
-    g.title = (goalEditTitle.value||"").trim() || "goal";
-    g.why = (goalEditWhy.value||"").trim();
-    saveJSON(LS.goals, data);
-    closeGoal();
-    draw();
-  };
-
-  goalDelete.onclick = ()=>{
-    if(!editingId) return;
-    const idx = data.findIndex(x=>x.id===editingId);
-    if(idx>-1){
-      data.splice(idx,1);
-      saveJSON(LS.goals, data);
-    }
-    closeGoal();
-    draw();
-  };
-
-  function draw(){
-    const q=(gSearch.value||"").trim().toLowerCase();
-    const f=gFilter.value;
-
-    let filtered=[...data];
-    if(f==="active") filtered=filtered.filter(x=>x.status!=="done");
-    if(f==="done") filtered=filtered.filter(x=>x.status==="done");
-    if(q) filtered=filtered.filter(x =>
-      (x.title||"").toLowerCase().includes(q) ||
-      (x.why||"").toLowerCase().includes(q)
-    );
-
-    gList.innerHTML="";
-    if(!filtered.length){
-      gList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no goals yet.</div>`;
-      return;
-    }
-
-    filtered.forEach(g=>{
-      const steps = (g.steps||[]);
-      const doneSteps = steps.filter(s=>s.done).length;
-      const totalSteps = steps.length;
-
-      gList.insertAdjacentHTML("beforeend", `
-        <div class="item" style="cursor:pointer" data-id="${g.id}">
-          <div class="left" style="flex:1">
-            <div style="min-width:0">
-              <div class="text" style="font-weight:800">${escapeHtml(g.title||"goal")}</div>
-              <div class="meta">${totalSteps ? `${doneSteps}/${totalSteps} steps done` : "no steps yet"} · tap to open</div>
-              ${g.why ? `<div class="meta" style="margin-top:6px">${escapeHtml(g.why)}</div>` : ""}
-            </div>
+        <div class="body section">
+          <div>
+            <label>Categories</label>
+            <div class="row" id="categoryChips"></div>
+            <div class="muted" style="margin-top:8px;">Tip: edit category names/colors in the code if you want.</div>
           </div>
-          <div class="pill pop5">${g.status==="done"?"done":"active"}</div>
-        </div>
-      `);
-    });
 
-    gList.querySelectorAll(".item[data-id]").forEach(row=>{
-      row.onclick=()=> openGoal(row.getAttribute("data-id"));
-    });
-  }
+          <div class="divider"></div>
 
-  gSearch.oninput = draw;
-  gFilter.onchange = draw;
-
-  draw();
-}
-
-/* ==========================
-   HABITS (fun streak cards)
-========================== */
-function renderHabits(){
-  const data = loadJSON(LS.habits, []);
-  const today = new Date().toISOString().slice(0,10);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">habits</h1>
-        <p class="subtitle">small habits = big glow up. check in daily.</p>
-      </div>
-    </div>
-
-    <div class="card pad" style="background:linear-gradient(135deg,var(--pop3),var(--pop2));border:none">
-      <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800">today</div>
-      <div class="muted" style="font-size:13px;margin-top:4px">${escapeHtml(today)}</div>
-    </div>
-
-    <div class="grid2" style="margin-top:12px">
-      <div class="card pad">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">
-          add habit
-        </div>
-        <input class="input" id="hName" placeholder="habit name (ex: drink water)" style="width:100%;margin-bottom:8px" />
-        <div class="row">
-          <select class="select" id="hColor">
-            <option value="pop1">pink pop</option>
-            <option value="pop2">blue pop</option>
-            <option value="pop3">green pop</option>
-            <option value="pop4">gold pop</option>
-            <option value="pop5">lavender pop</option>
-          </select>
-          <button class="btn primary" id="hAdd">add</button>
-        </div>
-      </div>
-
-      <div class="card pad" style="background:var(--pop5)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:6px">how it works</div>
-        <div class="muted" style="font-size:13px">
-          click “done today” to check in. streaks count days you’ve completed.
-        </div>
-      </div>
-    </div>
-
-    <div class="life-grid" style="margin-top:12px" id="habitGrid"></div>
-  `;
-
-  const hName = document.getElementById("hName");
-  const hColor = document.getElementById("hColor");
-  const habitGrid = document.getElementById("habitGrid");
-
-  function add(){
-    const name=(hName.value||"").trim();
-    if(!name) return;
-    data.unshift({
-      id: uid(),
-      name,
-      color: hColor.value || "pop3",
-      history: {}, // date -> true
-      createdAt: Date.now()
-    });
-    saveJSON(LS.habits, data);
-    hName.value="";
-    draw();
-  }
-  document.getElementById("hAdd").onclick = add;
-
-  function streak(h){
-    const keys = Object.keys(h.history||{}).sort().reverse();
-    if(!keys.length) return 0;
-    let s=0;
-    let d = new Date(); // today
-    for(;;){
-      const k = d.toISOString().slice(0,10);
-      if(h.history && h.history[k]){ s++; d.setDate(d.getDate()-1); }
-      else break;
-    }
-    return s;
-  }
-
-  function draw(){
-    habitGrid.innerHTML="";
-    if(!data.length){
-      habitGrid.innerHTML = `<div class="muted">no habits yet.</div>`;
-      return;
-    }
-
-    data.forEach(h=>{
-      const doneToday = !!(h.history && h.history[today]);
-      const s = streak(h);
-
-      const tile = document.createElement("div");
-      tile.className = "tile";
-      tile.innerHTML = `
-        <div class="t1">${escapeHtml(h.name||"habit")}</div>
-        <div class="t2">streak: <strong>${s}</strong> day${s===1?"":"s"}</div>
-        <div style="margin-top:10px" class="row">
-          <button class="btn ${doneToday?"":"primary"}" data-toggle="${h.id}">
-            ${doneToday?"done today ✓":"done today"}
-          </button>
-          <button class="btn danger" data-del="${h.id}">delete</button>
-        </div>
-        <div class="bg ${escapeHtml(h.color||"pop3")}"></div>
-      `;
-      habitGrid.appendChild(tile);
-    });
-
-    habitGrid.querySelectorAll("[data-toggle]").forEach(btn=>{
-      btn.onclick=()=>{
-        const id = btn.getAttribute("data-toggle");
-        const h = data.find(x=>x.id===id);
-        if(!h) return;
-        if(!h.history) h.history={};
-        h.history[today] = !h.history[today];
-        saveJSON(LS.habits, data);
-        draw();
-      };
-    });
-
-    habitGrid.querySelectorAll("[data-del]").forEach(btn=>{
-      btn.onclick=()=>{
-        const id = btn.getAttribute("data-del");
-        const idx = data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.habits, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  draw();
-}
-
-/* ==========================
-   WISHLIST (split layout)
-========================== */
-function renderWishlist(){
-  const data = loadJSON(LS.wishlist, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">wishlist</h1>
-        <p class="subtitle">save items + links + price so you stop forgetting.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop1)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">
-          add item
-        </div>
-        <input class="input" id="wName" placeholder="item name" style="width:100%;margin-bottom:8px" />
-        <div class="grid2" style="gap:8px">
-          <input class="input" id="wPrice" placeholder="price (optional)" style="width:100%" />
-          <select class="select" id="wPriority" style="width:100%">
-            <option value="normal">normal</option>
-            <option value="high">high</option>
-            <option value="low">low</option>
-          </select>
-        </div>
-        <input class="input" id="wLink" placeholder="link (optional)" style="width:100%;margin-top:8px" />
-        <div class="grid2" style="gap:8px;margin-top:8px">
-          <select class="select" id="wStatus" style="width:100%">
-            <option value="want">want</option>
-            <option value="saving">saving</option>
-            <option value="bought">bought</option>
-          </select>
-          <select class="select" id="wCat" style="width:100%">
-            <option value="personal">personal</option>
-            <option value="social">social</option>
-            <option value="health">health</option>
-            <option value="education">education</option>
-            <option value="athletics">athletics</option>
-          </select>
-        </div>
-        <textarea class="textarea" id="wNotes" placeholder="notes (color, size, where you saw it…)" style="margin-top:8px"></textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="wAdd">add</button>
-          <button class="btn" id="wClear">clear</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="row">
-          <input class="input" id="wSearch" placeholder="search…" style="flex:1;min-width:200px" />
-          <select class="select" id="wFilter">
-            <option value="all">all</option>
-            <option value="want">want</option>
-            <option value="saving">saving</option>
-            <option value="bought">bought</option>
-          </select>
-          <select class="select" id="wSort">
-            <option value="new">newest</option>
-            <option value="priority">priority</option>
-            <option value="status">status</option>
-            <option value="name">name</option>
-          </select>
-        </div>
-        <div class="list" id="wList"></div>
-      </div>
-    </div>
-  `;
-
-  const wName = document.getElementById("wName");
-  const wPrice = document.getElementById("wPrice");
-  const wPriority = document.getElementById("wPriority");
-  const wLink = document.getElementById("wLink");
-  const wStatus = document.getElementById("wStatus");
-  const wCat = document.getElementById("wCat");
-  const wNotes = document.getElementById("wNotes");
-  const wSearch = document.getElementById("wSearch");
-  const wFilter = document.getElementById("wFilter");
-  const wSort = document.getElementById("wSort");
-  const wList = document.getElementById("wList");
-
-  function clearForm(){
-    wName.value=""; wPrice.value=""; wPriority.value="normal";
-    wLink.value=""; wStatus.value="want"; wCat.value="personal"; wNotes.value="";
-  }
-
-  function add(){
-    const name=(wName.value||"").trim();
-    if(!name) return;
-    data.unshift({
-      id: uid(),
-      name,
-      price: (wPrice.value||"").trim(),
-      priority: wPriority.value,
-      link: (wLink.value||"").trim(),
-      status: wStatus.value,
-      category: wCat.value,
-      notes: (wNotes.value||"").trim(),
-      createdAt: Date.now()
-    });
-    saveJSON(LS.wishlist, data);
-    clearForm();
-    draw();
-  }
-
-  function prioScore(p){ return p==="high"?0 : p==="normal"?1 : 2; }
-  function statusScore(s){ return s==="want"?0 : s==="saving"?1 : 2; }
-
-  function draw(){
-    const q=(wSearch.value||"").trim().toLowerCase();
-    const f=wFilter.value;
-    const sort=wSort.value;
-
-    let filtered=[...data];
-    if(f!=="all") filtered=filtered.filter(x=>x.status===f);
-    if(q) filtered=filtered.filter(x =>
-      (x.name||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    if(sort==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(sort==="priority") filtered.sort((a,b)=>prioScore(a.priority)-prioScore(b.priority));
-    if(sort==="status") filtered.sort((a,b)=>statusScore(a.status)-statusScore(b.status));
-    if(sort==="name") filtered.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-
-    wList.innerHTML="";
-    if(!filtered.length){
-      wList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no items yet.</div>`;
-      return;
-    }
-
-    filtered.forEach(x=>{
-      const link = (x.link||"").trim();
-      const linkHtml = link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer" style="font-size:11px">open link</a>` : "";
-
-      wList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left" style="flex:1">
-            <div style="min-width:0;flex:1">
-              <div class="text" style="font-weight:800">${escapeHtml(x.name)} <span style="margin-left:8px">${catPill(x.category)}</span></div>
-              <div class="meta">${escapeHtml(x.status)} · ${escapeHtml(x.priority)}${x.price ? " · "+escapeHtml(x.price) : ""}</div>
-              ${linkHtml ? `<div style="margin-top:6px">${linkHtml}</div>` : ""}
-              ${x.notes ? `<div class="meta" style="margin-top:6px">${escapeHtml(x.notes)}</div>` : ""}
-            </div>
+          <div class="section">
+            <label>Weekly intention</label>
+            <input id="intention" placeholder="ex: stay calm, stay on top of school, move my body" />
           </div>
-          <div class="x" title="delete">×</div>
-        </div>
-      `);
-    });
 
-    wList.querySelectorAll(".item .x").forEach(x=>{
-      x.onclick = ()=>{
-        const id = x.closest(".item").getAttribute("data-id");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.wishlist, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("wAdd").onclick = add;
-  document.getElementById("wClear").onclick = clearForm;
-  wSearch.oninput = draw;
-  wFilter.onchange = draw;
-  wSort.onchange = draw;
-
-  draw();
-}
-
-/* ==========================
-   JOURNAL (same as before but v2)
-========================== */
-function renderJournal(){
-  const store = loadJSON(LS.journal, {});
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth()+1).padStart(2,"0");
-  const dd = String(today.getDate()).padStart(2,"0");
-  const defaultDate = `${yyyy}-${mm}-${dd}`;
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">daily journal</h1>
-        <p class="subtitle">one entry per day. quick and calm.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop4)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">
-          write
-        </div>
-        <div class="row">
-          <input class="input" type="date" id="jDate" value="${defaultDate}" />
-          <button class="btn" id="clearEntry">clear</button>
-          <button class="btn primary" id="saveEntry">save</button>
-        </div>
-        <div style="margin-top:10px">
-          <textarea class="textarea" id="jText" placeholder="what happened today? what’s on your mind?"></textarea>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">
-          prompts
-        </div>
-        <div class="list">
-          <div class="item"><div class="left"><div class="text">what felt easy today?</div></div></div>
-          <div class="item"><div class="left"><div class="text">what felt hard today?</div></div></div>
-          <div class="item"><div class="left"><div class="text">what do you want tomorrow to feel like?</div></div></div>
-          <div class="item"><div class="left"><div class="text">one thing you’re proud of:</div></div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card pad" style="margin-top:14px">
-      <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">recent entries</div>
-      <div class="list" id="jList"></div>
-    </div>
-  `;
-
-  const dateEl = document.getElementById("jDate");
-  const textEl = document.getElementById("jText");
-  const listEl = document.getElementById("jList");
-
-  function loadEntry(){
-    const k = dateEl.value;
-    textEl.value = store[k] || "";
-  }
-  function saveEntry(){
-    const k = dateEl.value;
-    const v = (textEl.value||"").trim();
-    if(v) store[k]=v; else delete store[k];
-    saveJSON(LS.journal, store);
-    drawList();
-  }
-  function clearEntry(){
-    textEl.value="";
-    saveEntry();
-  }
-
-  function drawList(){
-    const keys = Object.keys(store).sort((a,b)=> b.localeCompare(a)).slice(0,12);
-    listEl.innerHTML = keys.length ? "" : `<div class="muted" style="font-size:12px;padding:6px 2px;">no entries yet.</div>`;
-    keys.forEach(k=>{
-      const snippet = (store[k]||"").slice(0,120);
-      listEl.insertAdjacentHTML("beforeend", `
-        <div class="item" style="cursor:pointer" data-date="${k}">
-          <div class="left">
-            <div style="min-width:0">
-              <div class="text"><strong>${escapeHtml(k)}</strong></div>
-              <div class="meta">${escapeHtml(snippet)}${(store[k]||"").length>120?"…":""}</div>
-            </div>
+          <div class="section">
+            <label>Mini list</label>
+            <textarea id="miniList" placeholder="• things to do\n• things to buy\n• things to remember"></textarea>
           </div>
-          <div class="x" title="delete">×</div>
-        </div>
-      `);
-    });
 
-    listEl.querySelectorAll(".item").forEach(row=>{
-      row.onclick = (e)=>{
-        if(e.target.classList.contains("x")) return;
-        dateEl.value = row.getAttribute("data-date");
-        loadEntry();
-        window.scrollTo({top:0,behavior:"smooth"});
-      };
-      row.querySelector(".x").onclick = ()=>{
-        const k = row.getAttribute("data-date");
-        delete store[k];
-        saveJSON(LS.journal, store);
-        drawList();
-      };
-    });
-  }
-
-  document.getElementById("saveEntry").onclick = saveEntry;
-  document.getElementById("clearEntry").onclick = clearEntry;
-  dateEl.onchange = loadEntry;
-
-  loadEntry();
-  drawList();
-}
-
-/* ==========================
-   SIMPLE “MEDIA” PAGES (different vibes)
-========================== */
-function renderMovies(){ renderMediaTracker("movies", LS.movies, "movies", "pop2", "add a movie…"); }
-function renderShows(){ renderMediaTracker("shows", LS.shows, "shows", "pop3", "add a show…"); }
-function renderBooks(){ renderMediaTracker("books", LS.books, "books", "pop5", "add a book…"); }
-function renderMusic(){ renderMediaTracker("music", LS.music, "music", "pop1", "add a song/album…"); }
-function renderPodcasts(){ renderMediaTracker("podcasts", LS.podcasts, "podcasts", "pop4", "add a podcast…"); }
-
-function renderMediaTracker(title, key, label, pop, placeholder){
-  const data = loadJSON(key, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">${escapeHtml(title)}</h1>
-        <p class="subtitle">save it. rate it. leave a note.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--${escapeHtml(pop)})">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">add</div>
-        <input class="input" id="mTitle" placeholder="${escapeHtml(placeholder)}" style="width:100%;margin-bottom:8px" />
-        <div class="grid2" style="gap:8px">
-          <select class="select" id="mStatus" style="width:100%">
-            <option value="saved">saved</option>
-            <option value="in-progress">in progress</option>
-            <option value="done">done</option>
-          </select>
-          <select class="select" id="mRating" style="width:100%">
-            <option value="">rating</option>
-            <option value="5">★★★★★</option>
-            <option value="4">★★★★</option>
-            <option value="3">★★★</option>
-            <option value="2">★★</option>
-            <option value="1">★</option>
-          </select>
-        </div>
-        <textarea class="textarea" id="mNotes" placeholder="notes (why you saved it, who told you, vibes…)" style="margin-top:8px"></textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="mAdd">add</button>
-          <button class="btn" id="mClear">clear</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="row">
-          <input class="input" id="mSearch" placeholder="search…" style="flex:1;min-width:200px" />
-          <select class="select" id="mFilter">
-            <option value="all">all</option>
-            <option value="saved">saved</option>
-            <option value="in-progress">in progress</option>
-            <option value="done">done</option>
-          </select>
-          <select class="select" id="mSort">
-            <option value="new">newest</option>
-            <option value="rating">rating</option>
-            <option value="name">name</option>
-          </select>
-        </div>
-        <div class="list" id="mList"></div>
-      </div>
-    </div>
-  `;
-
-  const mTitle = document.getElementById("mTitle");
-  const mStatus = document.getElementById("mStatus");
-  const mRating = document.getElementById("mRating");
-  const mNotes = document.getElementById("mNotes");
-  const mSearch = document.getElementById("mSearch");
-  const mFilter = document.getElementById("mFilter");
-  const mSort = document.getElementById("mSort");
-  const mList = document.getElementById("mList");
-
-  function clearForm(){
-    mTitle.value=""; mStatus.value="saved"; mRating.value=""; mNotes.value="";
-  }
-
-  function add(){
-    const t=(mTitle.value||"").trim();
-    if(!t) return;
-    data.unshift({
-      id: uid(),
-      title:t,
-      status:mStatus.value,
-      rating:mRating.value,
-      notes:(mNotes.value||"").trim(),
-      createdAt: Date.now()
-    });
-    saveJSON(key, data);
-    clearForm();
-    draw();
-  }
-
-  function draw(){
-    const q=(mSearch.value||"").trim().toLowerCase();
-    const f=mFilter.value;
-    const s=mSort.value;
-
-    let filtered=[...data];
-    if(f!=="all") filtered=filtered.filter(x=>x.status===f);
-    if(q) filtered=filtered.filter(x =>
-      (x.title||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    if(s==="new") filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(s==="rating") filtered.sort((a,b)=>(parseInt(b.rating||"0",10))-(parseInt(a.rating||"0",10)));
-    if(s==="name") filtered.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
-
-    mList.innerHTML="";
-    if(!filtered.length){
-      mList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">nothing here yet.</div>`;
-      return;
-    }
-
-    filtered.forEach(x=>{
-      const stars = x.rating ? "★".repeat(parseInt(x.rating,10)) : "";
-      mList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left" style="flex:1">
-            <div style="min-width:0">
-              <div class="text" style="font-weight:800">${escapeHtml(x.title||label)} ${stars?`<span class="pill ${pop}">${stars}</span>`:""}</div>
-              <div class="meta">${escapeHtml(x.status||"saved")}${x.notes?` · ${escapeHtml(x.notes)}`:""}</div>
-            </div>
+          <div class="row">
+            <button class="btn" id="exportBtn">Export JSON</button>
+            <button class="btn danger" id="resetBtn">Reset</button>
           </div>
-          <div class="x" title="delete">×</div>
+
+          <footer>paper + blush + calm — localStorage only</footer>
         </div>
-      `);
-    });
-
-    mList.querySelectorAll(".item .x").forEach(btn=>{
-      btn.onclick=()=>{
-        const id = btn.closest(".item").getAttribute("data-id");
-        const idx = data.findIndex(it=>it.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(key, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("mAdd").onclick = add;
-  document.getElementById("mClear").onclick = clearForm;
-  mSearch.oninput = draw;
-  mFilter.onchange = draw;
-  mSort.onchange = draw;
-
-  draw();
-}
-
-/* ==========================
-   MONTHLY OBSESSIONS (board layout)
-========================== */
-function renderObsessions(){
-  const data = loadJSON(LS.obsessions, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">monthly obsessions</h1>
-        <p class="subtitle">your current favorites across everything.</p>
-      </div>
+      </aside>
     </div>
+  </div>
 
-    <div class="card pad" style="background:linear-gradient(135deg,var(--pop1),var(--pop2));border:none">
-      <div class="row">
-        <input class="input" id="oThing" placeholder="favorite thing…" style="flex:1;min-width:220px" />
-        <select class="select" id="oType">
-          <option value="song">song</option>
-          <option value="movie">movie</option>
-          <option value="show">show</option>
-          <option value="book">book</option>
-          <option value="place">place</option>
-          <option value="random">random</option>
-        </select>
-        <button class="btn primary" id="oAdd">add</button>
+  <!-- MODAL -->
+  <div class="modalOverlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Event editor">
+      <div class="head">
+        <b id="modalTitle">New event</b>
+        <button class="btn" id="closeModal">Close</button>
       </div>
-    </div>
-
-    <div class="life-grid" style="margin-top:12px" id="oGrid"></div>
-  `;
-
-  const oThing = document.getElementById("oThing");
-  const oType = document.getElementById("oType");
-  const oGrid = document.getElementById("oGrid");
-
-  function add(){
-    const t=(oThing.value||"").trim();
-    if(!t) return;
-    data.unshift({ id:uid(), thing:t, type:oType.value, createdAt:Date.now() });
-    saveJSON(LS.obsessions, data);
-    oThing.value="";
-    draw();
-  }
-
-  function popForType(type){
-    return type==="song" ? "pop1"
-      : type==="movie" ? "pop2"
-      : type==="show" ? "pop3"
-      : type==="book" ? "pop5"
-      : type==="place" ? "pop4"
-      : "pop2";
-  }
-
-  function draw(){
-    oGrid.innerHTML="";
-    if(!data.length){
-      oGrid.innerHTML = `<div class="muted">no obsessions yet.</div>`;
-      return;
-    }
-    data.forEach(x=>{
-      const tile=document.createElement("div");
-      tile.className="tile";
-      tile.innerHTML = `
-        <div class="t1">${escapeHtml(x.thing||"favorite")}</div>
-        <div class="t2">${escapeHtml(x.type||"random")}</div>
-        <div class="row" style="margin-top:10px">
-          <button class="btn danger" data-del="${x.id}">delete</button>
-        </div>
-        <div class="bg ${popForType(x.type)}"></div>
-      `;
-      oGrid.appendChild(tile);
-    });
-
-    oGrid.querySelectorAll("[data-del]").forEach(btn=>{
-      btn.onclick=()=>{
-        const id=btn.getAttribute("data-del");
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.obsessions, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("oAdd").onclick = add;
-  oThing.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); add(); } });
-
-  draw();
-}
-
-/* ==========================
-   PLACES TO TRY (map-ish list)
-========================== */
-function renderPlaces(){
-  const data = loadJSON(LS.places, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">places to try</h1>
-        <p class="subtitle">restaurants, cafes, stores, anything.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop3)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">add place</div>
-        <input class="input" id="pName" placeholder="place name" style="width:100%;margin-bottom:8px" />
-        <div class="grid2" style="gap:8px">
-          <input class="input" id="pArea" placeholder="neighborhood / city" style="width:100%" />
-          <select class="select" id="pType" style="width:100%">
-            <option value="restaurant">restaurant</option>
-            <option value="cafe">cafe</option>
-            <option value="store">store</option>
-            <option value="other">other</option>
-          </select>
-        </div>
-        <textarea class="textarea" id="pNotes" placeholder="notes (who recommended, what to get…)" style="margin-top:8px"></textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="pAdd">add</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="row">
-          <input class="input" id="pSearch" placeholder="search…" style="flex:1;min-width:200px" />
-          <select class="select" id="pFilter">
-            <option value="all">all</option>
-            <option value="restaurant">restaurant</option>
-            <option value="cafe">cafe</option>
-            <option value="store">store</option>
-            <option value="other">other</option>
-          </select>
-        </div>
-        <div class="list" id="pList"></div>
-      </div>
-    </div>
-  `;
-
-  const pName=document.getElementById("pName");
-  const pArea=document.getElementById("pArea");
-  const pType=document.getElementById("pType");
-  const pNotes=document.getElementById("pNotes");
-  const pSearch=document.getElementById("pSearch");
-  const pFilter=document.getElementById("pFilter");
-  const pList=document.getElementById("pList");
-
-  function add(){
-    const name=(pName.value||"").trim();
-    if(!name) return;
-    data.unshift({
-      id:uid(),
-      name,
-      area:(pArea.value||"").trim(),
-      type:pType.value,
-      notes:(pNotes.value||"").trim(),
-      tried:false,
-      createdAt:Date.now()
-    });
-    saveJSON(LS.places, data);
-    pName.value=""; pArea.value=""; pType.value="restaurant"; pNotes.value="";
-    draw();
-  }
-
-  function draw(){
-    const q=(pSearch.value||"").trim().toLowerCase();
-    const f=pFilter.value;
-
-    let filtered=[...data];
-    if(f!=="all") filtered=filtered.filter(x=>x.type===f);
-    if(q) filtered=filtered.filter(x =>
-      (x.name||"").toLowerCase().includes(q) ||
-      (x.area||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    pList.innerHTML="";
-    if(!filtered.length){
-      pList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no places yet.</div>`;
-      return;
-    }
-
-    filtered.forEach(x=>{
-      pList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left" style="flex:1">
-            <input type="checkbox" class="chk" ${x.tried?"checked":""} />
-            <div style="min-width:0">
-              <div class="text" style="font-weight:800">${escapeHtml(x.name)} <span class="pill pop3">${escapeHtml(x.type)}</span></div>
-              <div class="meta">${escapeHtml(x.area||"")}${x.notes?` · ${escapeHtml(x.notes)}`:""}</div>
-            </div>
+      <div class="body section">
+        <div class="two">
+          <div>
+            <label>Title</label>
+            <input id="evTitle" placeholder="ex: tennis practice" />
           </div>
-          <div class="x">×</div>
-        </div>
-      `);
-    });
-
-    pList.querySelectorAll(".item").forEach(row=>{
-      const id=row.getAttribute("data-id");
-      row.querySelector(".chk").onchange=(e)=>{
-        const it=data.find(x=>x.id===id);
-        if(!it) return;
-        it.tried=!!e.target.checked;
-        saveJSON(LS.places, data);
-        draw();
-      };
-      row.querySelector(".x").onclick=()=>{
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.places, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("pAdd").onclick=add;
-  pSearch.oninput=draw;
-  pFilter.onchange=draw;
-
-  draw();
-}
-
-/* ==========================
-   WHAT TO ORDER (menu cards)
-========================== */
-function renderOrders(){
-  const data = loadJSON(LS.orders, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">what to order</h1>
-        <p class="subtitle">your saved “get this every time” list.</p>
-      </div>
-    </div>
-
-    <div class="card pad" style="background:linear-gradient(135deg,var(--pop4),var(--pop2));border:none">
-      <div class="row">
-        <input class="input" id="oPlace" placeholder="place name" style="flex:1;min-width:180px" />
-        <input class="input" id="oItem" placeholder="what to order" style="flex:1;min-width:180px" />
-        <button class="btn primary" id="oAdd">add</button>
-      </div>
-    </div>
-
-    <div class="life-grid" style="margin-top:12px" id="oList"></div>
-  `;
-
-  const oPlace=document.getElementById("oPlace");
-  const oItem=document.getElementById("oItem");
-  const oList=document.getElementById("oList");
-
-  function add(){
-    const place=(oPlace.value||"").trim();
-    const item=(oItem.value||"").trim();
-    if(!place || !item) return;
-    data.unshift({ id:uid(), place, item, createdAt:Date.now() });
-    saveJSON(LS.orders, data);
-    oPlace.value=""; oItem.value="";
-    draw();
-  }
-
-  function draw(){
-    oList.innerHTML="";
-    if(!data.length){
-      oList.innerHTML = `<div class="muted">no orders saved.</div>`;
-      return;
-    }
-    data.forEach(x=>{
-      const tile=document.createElement("div");
-      tile.className="tile";
-      tile.innerHTML = `
-        <div class="t1">${escapeHtml(x.place)}</div>
-        <div class="t2">${escapeHtml(x.item)}</div>
-        <div class="row" style="margin-top:10px">
-          <button class="btn danger" data-del="${x.id}">delete</button>
-        </div>
-        <div class="bg pop4"></div>
-      `;
-      oList.appendChild(tile);
-    });
-
-    oList.querySelectorAll("[data-del]").forEach(btn=>{
-      btn.onclick=()=>{
-        const id=btn.getAttribute("data-del");
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.orders, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("oAdd").onclick=add;
-  oItem.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); add(); } });
-
-  draw();
-}
-
-/* ==========================
-   OUTFITS (lookbook board)
-========================== */
-function renderOutfits(){
-  const data = loadJSON(LS.outfits, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">outfit ideas</h1>
-        <p class="subtitle">a mini lookbook. save outfit notes + vibes.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop5)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">add outfit</div>
-        <input class="input" id="ofTitle" placeholder="outfit name (ex: school cute)" style="width:100%;margin-bottom:8px" />
-        <input class="input" id="ofPieces" placeholder="pieces (ex: white top + jeans + gold hoops)" style="width:100%;margin-bottom:8px" />
-        <select class="select" id="ofVibe" style="width:100%">
-          <option value="clean girl">clean girl</option>
-          <option value="coquette">coquette</option>
-          <option value="preppy">preppy</option>
-          <option value="night out">night out</option>
-          <option value="sporty">sporty</option>
-          <option value="random">random</option>
-        </select>
-        <textarea class="textarea" id="ofNotes" placeholder="notes (where to wear, shoes, bag…)" style="margin-top:8px"></textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="ofAdd">add</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="row">
-          <input class="input" id="ofSearch" placeholder="search…" style="flex:1;min-width:200px" />
-          <select class="select" id="ofFilter">
-            <option value="all">all vibes</option>
-            <option value="clean girl">clean girl</option>
-            <option value="coquette">coquette</option>
-            <option value="preppy">preppy</option>
-            <option value="night out">night out</option>
-            <option value="sporty">sporty</option>
-            <option value="random">random</option>
-          </select>
-        </div>
-        <div class="list" id="ofList"></div>
-      </div>
-    </div>
-  `;
-
-  const ofTitle=document.getElementById("ofTitle");
-  const ofPieces=document.getElementById("ofPieces");
-  const ofVibe=document.getElementById("ofVibe");
-  const ofNotes=document.getElementById("ofNotes");
-  const ofSearch=document.getElementById("ofSearch");
-  const ofFilter=document.getElementById("ofFilter");
-  const ofList=document.getElementById("ofList");
-
-  function add(){
-    const title=(ofTitle.value||"").trim();
-    if(!title) return;
-    data.unshift({
-      id:uid(),
-      title,
-      pieces:(ofPieces.value||"").trim(),
-      vibe:ofVibe.value,
-      notes:(ofNotes.value||"").trim(),
-      createdAt:Date.now()
-    });
-    saveJSON(LS.outfits, data);
-    ofTitle.value=""; ofPieces.value=""; ofVibe.value="clean girl"; ofNotes.value="";
-    draw();
-  }
-
-  function draw(){
-    const q=(ofSearch.value||"").trim().toLowerCase();
-    const f=ofFilter.value;
-
-    let filtered=[...data];
-    if(f!=="all") filtered=filtered.filter(x=>x.vibe===f);
-    if(q) filtered=filtered.filter(x =>
-      (x.title||"").toLowerCase().includes(q) ||
-      (x.pieces||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    ofList.innerHTML="";
-    if(!filtered.length){
-      ofList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no outfits yet.</div>`;
-      return;
-    }
-
-    filtered.forEach(x=>{
-      ofList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left" style="flex:1">
-            <div style="min-width:0">
-              <div class="text" style="font-weight:800">${escapeHtml(x.title)} <span class="pill pop5">${escapeHtml(x.vibe)}</span></div>
-              ${x.pieces ? `<div class="meta">${escapeHtml(x.pieces)}</div>` : ""}
-              ${x.notes ? `<div class="meta" style="margin-top:6px">${escapeHtml(x.notes)}</div>` : ""}
-            </div>
+          <div>
+            <label>Category</label>
+            <select id="evCategory"></select>
           </div>
-          <div class="x">×</div>
         </div>
-      `);
-    });
 
-    ofList.querySelectorAll(".item").forEach(row=>{
-      const id=row.getAttribute("data-id");
-      row.querySelector(".x").onclick=()=>{
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.outfits, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("ofAdd").onclick=add;
-  ofSearch.oninput=draw;
-  ofFilter.onchange=draw;
-
-  draw();
-}
-
-/* ==========================
-   EVENT IDEAS (cards)
-========================== */
-function renderEventIdeas(){
-  const data = loadJSON(LS.eventsIdeas, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">event ideas</h1>
-        <p class="subtitle">save hangout + party ideas so you always have a plan.</p>
-      </div>
-    </div>
-
-    <div class="card pad" style="background:linear-gradient(135deg,var(--pop1),var(--pop4));border:none">
-      <div class="row">
-        <input class="input" id="eIdea" placeholder="idea (ex: sushi night + pics)" style="flex:1;min-width:220px" />
-        <select class="select" id="eVibe">
-          <option value="chill">chill</option>
-          <option value="funny">funny</option>
-          <option value="iconic">iconic</option>
-          <option value="low effort">low effort</option>
-          <option value="extra">extra</option>
-        </select>
-        <button class="btn primary" id="eAdd">add</button>
-      </div>
-    </div>
-
-    <div class="life-grid" style="margin-top:12px" id="eGrid"></div>
-  `;
-
-  const eIdea=document.getElementById("eIdea");
-  const eVibe=document.getElementById("eVibe");
-  const eGrid=document.getElementById("eGrid");
-
-  function add(){
-    const idea=(eIdea.value||"").trim();
-    if(!idea) return;
-    data.unshift({ id:uid(), idea, vibe:eVibe.value, createdAt:Date.now() });
-    saveJSON(LS.eventsIdeas, data);
-    eIdea.value="";
-    draw();
-  }
-
-  function draw(){
-    eGrid.innerHTML="";
-    if(!data.length){
-      eGrid.innerHTML = `<div class="muted">no ideas yet.</div>`;
-      return;
-    }
-
-    data.forEach(x=>{
-      const tile=document.createElement("div");
-      tile.className="tile";
-      tile.innerHTML = `
-        <div class="t1">${escapeHtml(x.idea)}</div>
-        <div class="t2"><span class="pill pop1">${escapeHtml(x.vibe)}</span></div>
-        <div class="row" style="margin-top:10px">
-          <button class="btn danger" data-del="${x.id}">delete</button>
-        </div>
-        <div class="bg pop1"></div>
-      `;
-      eGrid.appendChild(tile);
-    });
-
-    eGrid.querySelectorAll("[data-del]").forEach(btn=>{
-      btn.onclick=()=>{
-        const id=btn.getAttribute("data-del");
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.eventsIdeas, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("eAdd").onclick=add;
-  eIdea.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); add(); } });
-
-  draw();
-}
-
-/* ==========================
-   GIFTS (simple but cute)
-========================== */
-function renderGifts(){
-  const data = loadJSON(LS.gifts, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">gift ideas</h1>
-        <p class="subtitle">gift ideas so you don’t panic last minute.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop2)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">add</div>
-        <input class="input" id="gPerson" placeholder="for who?" style="width:100%;margin-bottom:8px" />
-        <input class="input" id="gIdea" placeholder="gift idea" style="width:100%;margin-bottom:8px" />
-        <textarea class="textarea" id="gNotes" placeholder="notes (budget, why they’d like it…)" style="min-height:90px"></textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="gAdd">add</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="row">
-          <input class="input" id="gSearch" placeholder="search…" style="flex:1;min-width:200px" />
-        </div>
-        <div class="list" id="gList"></div>
-      </div>
-    </div>
-  `;
-
-  const gPerson=document.getElementById("gPerson");
-  const gIdea=document.getElementById("gIdea");
-  const gNotes=document.getElementById("gNotes");
-  const gSearch=document.getElementById("gSearch");
-  const gList=document.getElementById("gList");
-
-  function add(){
-    const person=(gPerson.value||"").trim();
-    const idea=(gIdea.value||"").trim();
-    if(!person || !idea) return;
-    data.unshift({ id:uid(), person, idea, notes:(gNotes.value||"").trim(), bought:false, createdAt:Date.now() });
-    saveJSON(LS.gifts, data);
-    gPerson.value=""; gIdea.value=""; gNotes.value="";
-    draw();
-  }
-
-  function draw(){
-    const q=(gSearch.value||"").trim().toLowerCase();
-    let filtered=[...data];
-    if(q) filtered=filtered.filter(x =>
-      (x.person||"").toLowerCase().includes(q) ||
-      (x.idea||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    gList.innerHTML="";
-    if(!filtered.length){
-      gList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no gifts yet.</div>`;
-      return;
-    }
-
-    filtered.forEach(x=>{
-      gList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left" style="flex:1">
-            <input type="checkbox" class="chk" ${x.bought?"checked":""} />
-            <div style="min-width:0">
-              <div class="text" style="font-weight:800">${escapeHtml(x.person)} — ${escapeHtml(x.idea)}</div>
-              ${x.notes ? `<div class="meta">${escapeHtml(x.notes)}</div>` : ""}
-            </div>
+        <div class="three">
+          <div>
+            <label>Date</label>
+            <input id="evDate" type="date" />
           </div>
-          <div class="x">×</div>
-        </div>
-      `);
-    });
-
-    gList.querySelectorAll(".item").forEach(row=>{
-      const id=row.getAttribute("data-id");
-      row.querySelector(".chk").onchange=(e)=>{
-        const it=data.find(x=>x.id===id);
-        if(!it) return;
-        it.bought=!!e.target.checked;
-        saveJSON(LS.gifts, data);
-        draw();
-      };
-      row.querySelector(".x").onclick=()=>{
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.gifts, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("gAdd").onclick=add;
-  gSearch.oninput=draw;
-
-  draw();
-}
-
-/* ==========================
-   SLEEP (mini tracker)
-========================== */
-function renderSleep(){
-  const data = loadJSON(LS.sleep, []);
-  const today = new Date().toISOString().slice(0,10);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">sleep tracker</h1>
-        <p class="subtitle">super simple. just log hours.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop4)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">log today</div>
-        <div class="row">
-          <input class="input" id="sDate" type="date" value="${today}" />
-          <input class="input" id="sHours" placeholder="hours (ex: 7.5)" />
-          <button class="btn primary" id="sAdd">save</button>
-        </div>
-        <div class="muted" style="font-size:12px;margin-top:8px">
-          tip: don’t overthink it. estimate.
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">recent</div>
-        <div class="list" id="sList"></div>
-      </div>
-    </div>
-  `;
-
-  const sDate=document.getElementById("sDate");
-  const sHours=document.getElementById("sHours");
-  const sList=document.getElementById("sList");
-
-  function upsert(date, hours){
-    const idx=data.findIndex(x=>x.date===date);
-    if(idx>-1) data[idx].hours=hours;
-    else data.unshift({ id:uid(), date, hours });
-    saveJSON(LS.sleep, data);
-  }
-
-  function draw(){
-    const recent=[...data].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).slice(0,10);
-    sList.innerHTML="";
-    if(!recent.length){
-      sList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no logs yet.</div>`;
-      return;
-    }
-    recent.forEach(x=>{
-      sList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left">
-            <div style="min-width:0">
-              <div class="text" style="font-weight:800">${escapeHtml(x.date)}</div>
-              <div class="meta">${escapeHtml(String(x.hours||""))} hours</div>
-            </div>
+          <div>
+            <label>Start</label>
+            <input id="evStart" type="time" />
           </div>
-          <div class="x">×</div>
-        </div>
-      `);
-    });
-
-    sList.querySelectorAll(".item").forEach(row=>{
-      const id=row.getAttribute("data-id");
-      row.querySelector(".x").onclick=()=>{
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.sleep, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("sAdd").onclick=()=>{
-    const date=sDate.value;
-    const hours=parseFloat((sHours.value||"").trim());
-    if(!date || isNaN(hours)) return;
-    upsert(date, hours);
-    sHours.value="";
-    draw();
-  };
-
-  draw();
-}
-
-/* ==========================
-   MOVEMENT (workout log)
-========================== */
-function renderMovement(){
-  const data = loadJSON(LS.movement, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">movement</h1>
-        <p class="subtitle">log workouts + favorite classes.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop3)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">log</div>
-        <div class="row">
-          <input class="input" id="mvDate" type="date" value="${new Date().toISOString().slice(0,10)}" />
-          <input class="input" id="mvType" placeholder="type (tennis, pilates…)" style="flex:1;min-width:180px" />
-        </div>
-        <textarea class="textarea" id="mvNotes" placeholder="notes (how it felt, duration…)" style="min-height:90px;margin-top:8px"></textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="mvAdd">add</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="row">
-          <input class="input" id="mvSearch" placeholder="search…" style="flex:1;min-width:200px" />
-        </div>
-        <div class="list" id="mvList"></div>
-      </div>
-    </div>
-  `;
-
-  const mvDate=document.getElementById("mvDate");
-  const mvType=document.getElementById("mvType");
-  const mvNotes=document.getElementById("mvNotes");
-  const mvSearch=document.getElementById("mvSearch");
-  const mvList=document.getElementById("mvList");
-
-  function add(){
-    const type=(mvType.value||"").trim();
-    if(!type) return;
-    data.unshift({
-      id:uid(),
-      date:mvDate.value,
-      type,
-      notes:(mvNotes.value||"").trim(),
-      createdAt:Date.now()
-    });
-    saveJSON(LS.movement, data);
-    mvType.value=""; mvNotes.value="";
-    draw();
-  }
-
-  function draw(){
-    const q=(mvSearch.value||"").trim().toLowerCase();
-    let filtered=[...data];
-    if(q) filtered=filtered.filter(x =>
-      (x.type||"").toLowerCase().includes(q) ||
-      (x.notes||"").toLowerCase().includes(q)
-    );
-
-    mvList.innerHTML="";
-    if(!filtered.length){
-      mvList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no movement logged.</div>`;
-      return;
-    }
-
-    filtered.forEach(x=>{
-      mvList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left" style="flex:1">
-            <div style="min-width:0">
-              <div class="text" style="font-weight:800">${escapeHtml(x.type)} <span class="pill pop3">${escapeHtml(x.date||"")}</span></div>
-              ${x.notes ? `<div class="meta">${escapeHtml(x.notes)}</div>` : ""}
-            </div>
+          <div>
+            <label>End</label>
+            <input id="evEnd" type="time" />
           </div>
-          <div class="x">×</div>
-        </div>
-      `);
-    });
-
-    mvList.querySelectorAll(".item").forEach(row=>{
-      const id=row.getAttribute("data-id");
-      row.querySelector(".x").onclick=()=>{
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.movement, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("mvAdd").onclick=add;
-  mvSearch.oninput=draw;
-
-  draw();
-}
-
-/* ==========================
-   NOTES VAULT (big textarea + pinned)
-========================== */
-function renderNotesVault(){
-  const store = loadJSON(LS.notes, { pinned:"", notes:[] });
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">notes vault</h1>
-        <p class="subtitle">everything you don’t want to lose.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop5)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">pinned</div>
-        <textarea class="textarea" id="pinned" placeholder="your pinned note…">${escapeHtml(store.pinned||"")}</textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="savePinned">save pinned</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">quick note</div>
-        <textarea class="textarea" id="noteText" placeholder="type a quick note…"></textarea>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="addNote">add</button>
-          <button class="btn" id="clearNote">clear</button>
         </div>
 
-        <div class="list" id="noteList"></div>
-      </div>
-    </div>
-  `;
-
-  const pinned=document.getElementById("pinned");
-  const noteText=document.getElementById("noteText");
-  const noteList=document.getElementById("noteList");
-
-  document.getElementById("savePinned").onclick=()=>{
-    store.pinned = (pinned.value||"").trim();
-    saveJSON(LS.notes, store);
-  };
-
-  document.getElementById("addNote").onclick=()=>{
-    const t=(noteText.value||"").trim();
-    if(!t) return;
-    store.notes.unshift({ id:uid(), text:t, createdAt:Date.now() });
-    saveJSON(LS.notes, store);
-    noteText.value="";
-    draw();
-  };
-  document.getElementById("clearNote").onclick=()=>{ noteText.value=""; };
-
-  function draw(){
-    noteList.innerHTML="";
-    if(!(store.notes||[]).length){
-      noteList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no notes yet.</div>`;
-      return;
-    }
-    store.notes.slice(0,20).forEach(n=>{
-      noteList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${n.id}">
-          <div class="left" style="flex:1">
-            <div style="min-width:0">
-              <div class="text">${escapeHtml(n.text)}</div>
-              <div class="meta">${new Date(n.createdAt||Date.now()).toLocaleString()}</div>
-            </div>
-          </div>
-          <div class="x">×</div>
-        </div>
-      `);
-    });
-
-    noteList.querySelectorAll(".item").forEach(row=>{
-      const id=row.getAttribute("data-id");
-      row.querySelector(".x").onclick=()=>{
-        const idx=store.notes.findIndex(x=>x.id===id);
-        if(idx>-1){
-          store.notes.splice(idx,1);
-          saveJSON(LS.notes, store);
-          draw();
-        }
-      };
-    });
-  }
-
-  draw();
-}
-
-/* ==========================
-   SPENDING (light log)
-========================== */
-function renderSpending(){
-  const data = loadJSON(LS.spending, []);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">spending log</h1>
-        <p class="subtitle">not intense. just awareness.</p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card pad" style="background:var(--pop1)">
-        <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:8px">add</div>
-        <div class="row">
-          <input class="input" id="spDate" type="date" value="${new Date().toISOString().slice(0,10)}" />
-          <input class="input" id="spItem" placeholder="what did you buy?" style="flex:1;min-width:180px" />
-        </div>
-        <div class="row" style="margin-top:8px">
-          <input class="input" id="spAmt" placeholder="$ amount (optional)" />
-          <select class="select" id="spMood">
-            <option value="worth it">worth it</option>
-            <option value="ok">ok</option>
-            <option value="regret">regret</option>
-          </select>
-          <button class="btn primary" id="spAdd">add</button>
-        </div>
-      </div>
-
-      <div class="card pad">
-        <div class="row">
-          <input class="input" id="spSearch" placeholder="search…" style="flex:1;min-width:200px" />
-        </div>
-        <div class="list" id="spList"></div>
-      </div>
-    </div>
-  `;
-
-  const spDate=document.getElementById("spDate");
-  const spItem=document.getElementById("spItem");
-  const spAmt=document.getElementById("spAmt");
-  const spMood=document.getElementById("spMood");
-  const spSearch=document.getElementById("spSearch");
-  const spList=document.getElementById("spList");
-
-  function add(){
-    const item=(spItem.value||"").trim();
-    if(!item) return;
-    data.unshift({
-      id:uid(),
-      date:spDate.value,
-      item,
-      amount:(spAmt.value||"").trim(),
-      mood:spMood.value,
-      createdAt:Date.now()
-    });
-    saveJSON(LS.spending, data);
-    spItem.value=""; spAmt.value=""; spMood.value="worth it";
-    draw();
-  }
-
-  function draw(){
-    const q=(spSearch.value||"").trim().toLowerCase();
-    let filtered=[...data];
-    if(q) filtered=filtered.filter(x =>
-      (x.item||"").toLowerCase().includes(q) ||
-      (x.mood||"").toLowerCase().includes(q)
-    );
-
-    spList.innerHTML="";
-    if(!filtered.length){
-      spList.innerHTML = `<div class="muted" style="font-size:12px;padding:8px 2px;">no spending yet.</div>`;
-      return;
-    }
-
-    filtered.forEach(x=>{
-      spList.insertAdjacentHTML("beforeend", `
-        <div class="item" data-id="${x.id}">
-          <div class="left" style="flex:1">
-            <div style="min-width:0">
-              <div class="text" style="font-weight:800">${escapeHtml(x.item)} <span class="pill pop1">${escapeHtml(x.mood)}</span></div>
-              <div class="meta">${escapeHtml(x.date||"")}${x.amount?` · ${escapeHtml(x.amount)}`:""}</div>
-            </div>
-          </div>
-          <div class="x">×</div>
-        </div>
-      `);
-    });
-
-    spList.querySelectorAll(".item").forEach(row=>{
-      const id=row.getAttribute("data-id");
-      row.querySelector(".x").onclick=()=>{
-        const idx=data.findIndex(x=>x.id===id);
-        if(idx>-1){
-          data.splice(idx,1);
-          saveJSON(LS.spending, data);
-          draw();
-        }
-      };
-    });
-  }
-
-  document.getElementById("spAdd").onclick=add;
-  spSearch.oninput=draw;
-
-  draw();
-}
-
-/* ==========================
-   WEEKLY CALENDAR (tasks dropdown removed)
-========================== */
-function startOfWeek(d){
-  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const day = (date.getDay()+6)%7; // Mon=0
-  date.setDate(date.getDate()-day);
-  return date;
-}
-function weekKey(date){ return date.toISOString().slice(0,10); }
-function formatRange(date){
-  const end = new Date(date.getTime()); end.setDate(end.getDate()+6);
-  const opts={month:"short",day:"numeric"};
-  return date.toLocaleDateString(undefined,opts)+" – "+end.toLocaleDateString(undefined,opts);
-}
-function timeLabelFromMinutes(mins){
-  let h=Math.floor(mins/60), m=mins%60;
-  const ampm = h<12?"am":"pm";
-  const display=((h+11)%12)+1;
-  return display+":"+String(m).padStart(2,"0")+" "+ampm;
-}
-function parseTime(str){
-  if(!str) return null;
-  const m = str.toLowerCase().match(/(\d{1,2}):(\d{2})\s*(am|pm)?/);
-  if(!m) return null;
-  let h=parseInt(m[1],10), mm=parseInt(m[2],10);
-  const ap=m[3];
-  if(ap==="pm" && h<12) h+=12;
-  if(ap==="am" && h===12) h=0;
-  let total=h*60+mm;
-  total=Math.max(0,Math.min(total,24*60));
-  return total;
-}
-
-let WK = {
-  weekStart: startOfWeek(new Date()),
-  editingId: null,
-  currentDay: 0,
-  defaultStart: 16*60
-};
-
-function getAllEvents(){ return loadJSON(LS.weeklyEvents, []); }
-function saveAllEvents(all){ saveJSON(LS.weeklyEvents, all); }
-
-function getTasksStore(){ return loadJSON(LS.weeklyTasks, {}); }
-function saveTasksStore(obj){ saveJSON(LS.weeklyTasks, obj); }
-
-function ensureRepeatingEventsForWeek(){
-  const all = getAllEvents();
-  const currentKey = weekKey(WK.weekStart);
-
-  const prev = new Date(WK.weekStart.getTime()); prev.setDate(prev.getDate()-7);
-  const prevKey = weekKey(prev);
-
-  const prevWeekRepeats = all.filter(e=> e.week===prevKey && e.repeat==="weekly");
-  if(!prevWeekRepeats.length) return;
-
-  const currentWeek = all.filter(e=> e.week===currentKey);
-  let changed=false;
-
-  prevWeekRepeats.forEach(e=>{
-    const exists = currentWeek.some(x =>
-      x.day===e.day &&
-      (x.title||"")===(e.title||"") &&
-      x.startMinutes===e.startMinutes &&
-      x.endMinutes===e.endMinutes &&
-      !!x.allDay === !!e.allDay
-    );
-    if(!exists){
-      const clone = {...e};
-      clone.week=currentKey;
-      clone.id=uid();
-      all.push(clone);
-      changed=true;
-    }
-  });
-
-  if(changed) saveAllEvents(all);
-}
-
-function renderWeekly(){
-  const range = formatRange(WK.weekStart);
-
-  app.innerHTML = `
-    <div class="topbar">
-      <div>
-        <h1 class="title">weekly calendar</h1>
-        <p class="subtitle">plan your week in blocks — school, sports, social, everything.</p>
-      </div>
-      <div>
-        <div class="wk-range" id="wkRange">${escapeHtml(range)}</div>
-        <div class="wk-nav">
-          <button class="btn" id="wkPrev">◀ previous</button>
-          <button class="btn" id="wkToday">this week</button>
-          <button class="btn" id="wkNext">next ▶</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="wk-priority">
-      <div class="wk-priority-head">
         <div>
-          <div class="wk-priority-title">this week’s priorities</div>
-          <div class="wk-priority-sub">tasks you mark as urgent/benefit show up here, grouped by topic.</div>
+          <label>Notes</label>
+          <textarea id="evNotes" placeholder="optional"></textarea>
         </div>
-        <div class="wk-key">
-          <span><span class="dot urgent"></span> urgent</span>
-          <span><span class="dot benefit"></span> benefit</span>
-          <span><span class="dot normal"></span> normal</span>
+
+        <div class="rightActions">
+          <button class="btn danger" id="deleteBtn" style="display:none;">Delete</button>
+          <button class="btn primary" id="saveBtn">Save</button>
         </div>
-      </div>
-      <div class="wk-priority-list" id="priorityList">
-        <div class="wk-empty">mark a task as urgent or benefit to see it here.</div>
-      </div>
-    </div>
 
-    <div class="wk-category">
-      <span class="wk-chip" data-cat="education">education</span>
-      <span class="wk-chip" data-cat="athletics">athletics</span>
-      <span class="wk-chip" data-cat="social">social</span>
-      <span class="wk-chip" data-cat="health">health</span>
-      <span class="wk-chip" data-cat="personal">personal</span>
-    </div>
-
-    <div class="wk-layout">
-      <div class="wk-top">
-        <div class="wk-top-left"></div>
-        <div class="wk-top-days" id="wkTopDays"></div>
-      </div>
-      <div class="wk-scroll">
-        <div class="wk-times" id="wkTimes"></div>
-        <div class="wk-days" id="wkDays"></div>
+        <div class="muted" id="saveHint"></div>
       </div>
     </div>
-  `;
+  </div>
 
-  document.getElementById("wkPrev").onclick = ()=>{ WK.weekStart.setDate(WK.weekStart.getDate()-7); renderWeekly(); };
-  document.getElementById("wkNext").onclick = ()=>{ WK.weekStart.setDate(WK.weekStart.getDate()+7); renderWeekly(); };
-  document.getElementById("wkToday").onclick = ()=>{ WK.weekStart = startOfWeek(new Date()); renderWeekly(); };
+  <script>
+    // ---------- DaybyDay-ish data + localStorage ----------
+    const STORAGE_KEY = "daybyday_singlefile_v1";
 
-  buildWeeklyColumns();
-  buildTimeColumn();
-  ensureRepeatingEventsForWeek();
-  renderTasks();
-  renderEvents();
-  renderPriorityBar();
-}
+    const CATEGORIES = [
+      { id: "school", name: "School", color: "#E06A89" },
+      { id: "social", name: "Social", color: "#F0A0B4" },
+      { id: "athletics", name: "Athletics", color: "#CFA4E8" },
+      { id: "personal", name: "Personal", color: "#9BB7E8" },
+      { id: "health", name: "Health", color: "#9ED6C5" },
+      { id: "errands", name: "Errands", color: "#E7C48A" }
+    ];
 
-function buildTimeColumn(){
-  const timesCol = document.getElementById("wkTimes");
-  timesCol.innerHTML="";
-  for(let h=0; h<24; h++){
-    const row=document.createElement("div");
-    row.className="wk-time-row";
-    row.textContent = (((h+11)%12)+1) + (h<12?" am":" pm");
-    timesCol.appendChild(row);
-  }
-}
+    function uid() {
+      return Math.random().toString(16).slice(2) + Date.now().toString(16);
+    }
 
-function buildWeeklyColumns(){
-  const top = document.getElementById("wkTopDays");
-  const days = document.getElementById("wkDays");
-  top.innerHTML=""; days.innerHTML="";
+    function startOfWeek(d) {
+      const date = new Date(d);
+      const day = (date.getDay() + 6) % 7; // Monday=0
+      date.setHours(0,0,0,0);
+      date.setDate(date.getDate() - day);
+      return date;
+    }
 
-  const dayNames = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+    function fmtDateISO(d){
+      const x = new Date(d);
+      const y = x.getFullYear();
+      const m = String(x.getMonth()+1).padStart(2,"0");
+      const da = String(x.getDate()).padStart(2,"0");
+      return `${y}-${m}-${da}`;
+    }
 
-  for(let i=0;i<7;i++){
-    const d = new Date(WK.weekStart.getTime()); d.setDate(d.getDate()+i);
-    const opts={month:"short",day:"numeric"};
+    function fmtShort(d){
+      return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(d);
+    }
 
-    const topDay = document.createElement("div");
-    topDay.innerHTML = `
-      <div class="wk-day-header">
-        <div class="wk-day-name">${dayNames[i]}</div>
-        <div class="wk-day-date">${d.toLocaleDateString(undefined, opts)}</div>
-      </div>
+    function fmtWeekLabel(weekStart){
+      const a = new Date(weekStart);
+      const b = new Date(weekStart);
+      b.setDate(b.getDate()+6);
+      const sameMonth = a.getMonth() === b.getMonth();
+      const monthA = new Intl.DateTimeFormat(undefined, { month:"long" }).format(a);
+      const monthB = new Intl.DateTimeFormat(undefined, { month:"long" }).format(b);
+      const year = a.getFullYear();
+      return sameMonth
+        ? `${monthA} ${a.getDate()}–${b.getDate()}, ${year}`
+        : `${monthA} ${a.getDate()} – ${monthB} ${b.getDate()}, ${year}`;
+    }
 
-      <div class="wk-assign-row">
-        <input class="wk-assign-input" data-day="${i}" placeholder="add task… (press enter)" />
-      </div>
-
-      <div class="wk-assign-chips" data-chips="${i}"></div>
-
-      <div class="wk-all-day-row">
-        <div class="wk-all-day-list" data-allday="${i}"></div>
-        <button class="wk-all-day-add" data-add-allday="${i}">+</button>
-      </div>
-    `;
-    top.appendChild(topDay);
-
-    const col = document.createElement("div");
-    col.className="wk-day";
-    col.innerHTML = `<div class="wk-day-body" data-body="${i}"></div>`;
-    days.appendChild(col);
-  }
-
-  // enter-to-add tasks
-  document.querySelectorAll(".wk-assign-input").forEach(inp=>{
-    inp.onkeydown = (e)=>{
-      if(e.key==="Enter"){
-        e.preventDefault();
-        const day = parseInt(inp.getAttribute("data-day"),10);
-        addTask(day);
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return { events: [], intention: "", miniList: "" };
+        const parsed = JSON.parse(raw);
+        return {
+          events: Array.isArray(parsed.events) ? parsed.events : [],
+          intention: typeof parsed.intention === "string" ? parsed.intention : "",
+          miniList: typeof parsed.miniList === "string" ? parsed.miniList : ""
+        };
+      }catch{
+        return { events: [], intention: "", miniList: "" };
       }
-    };
-  });
-
-  // plus all-day event
-  document.querySelectorAll("[data-add-allday]").forEach(btn=>{
-    btn.onclick = ()=>{
-      const day = parseInt(btn.getAttribute("data-add-allday"),10);
-      openEventModal({ day, allDay:true });
-    };
-  });
-
-  // click grid to add timed event
-  document.querySelectorAll("[data-body]").forEach(body=>{
-    body.onclick = (e)=>{
-      const day = parseInt(body.getAttribute("data-body"),10);
-      const rect = body.getBoundingClientRect();
-      const y = e.clientY - rect.top;
-      const proportion = Math.max(0, Math.min(1, y / rect.height));
-      let mins = Math.round((proportion * 24*60)/15)*15;
-      mins = Math.min(mins, 24*60-15);
-      openEventModal({ day, allDay:false, startMinutes:mins, endMinutes:Math.min(mins+60,24*60) });
-    };
-  });
-}
-
-/* ----- TASKS (no category dropdown) ----- */
-function addTask(day){
-  const inputEl = document.querySelector(`.wk-assign-input[data-day="${day}"]`);
-  const text = (inputEl.value||"").trim();
-  if(!text) return;
-
-  const key = weekKey(WK.weekStart);
-
-  const store = getTasksStore();
-  if(!store[key]) store[key]={};
-  if(!store[key][day]) store[key][day]=[];
-  store[key][day].push({ text, done:false, priority:"normal" });
-
-  saveTasksStore(store);
-  inputEl.value="";
-  renderTasks();
-  renderPriorityBar();
-}
-
-function renderTasks(){
-  const key = weekKey(WK.weekStart);
-  const store = getTasksStore();
-  const week = store[key] || {};
-
-  // clear all chips
-  document.querySelectorAll("[data-chips]").forEach(el=> el.innerHTML="");
-
-  Object.keys(week).forEach(dayStr=>{
-    const day = parseInt(dayStr,10);
-    const el = document.querySelector(`[data-chips="${day}"]`);
-    if(!el) return;
-
-    (week[day]||[]).forEach((t, idx)=>{
-      const pr = t.priority || "normal";
-      const done = !!t.done;
-
-      const cls = ["task"];
-      if(done) cls.push("done");
-      if(pr==="urgent") cls.push("urgent");
-      if(pr==="benefit") cls.push("benefit");
-
-      const node = document.createElement("div");
-      node.className = cls.join(" ");
-      node.innerHTML = `
-        <input class="task-check" type="checkbox" ${done?"checked":""} />
-        <span class="task-text">${escapeHtml(t.text||"")}</span>
-        <button class="task-dot" title="cycle priority"></button>
-        <span class="task-x" title="delete">×</span>
-      `;
-
-      node.querySelector(".task-check").onchange = (e)=>{
-        t.done = !!e.target.checked;
-        saveTasksStore(store);
-        renderTasks();
-        renderPriorityBar();
-      };
-
-      node.querySelector(".task-dot").onclick = ()=>{
-        const current = t.priority || "normal";
-        t.priority = current==="normal" ? "urgent" : current==="urgent" ? "benefit" : "normal";
-        saveTasksStore(store);
-        renderTasks();
-        renderPriorityBar();
-      };
-
-      node.querySelector(".task-x").onclick = ()=>{
-        week[day].splice(idx,1);
-        saveTasksStore(store);
-        renderTasks();
-        renderPriorityBar();
-      };
-
-      el.appendChild(node);
-    });
-  });
-}
-
-/* ----- PRIORITIES ----- */
-function renderPriorityBar(){
-  const list = document.getElementById("priorityList");
-  if(!list) return;
-
-  const key = weekKey(WK.weekStart);
-  const store = getTasksStore();
-  const week = store[key] || {};
-  const items=[];
-
-  Object.keys(week).forEach(dayStr=>{
-    const day = parseInt(dayStr,10);
-    (week[day]||[]).forEach(t=>{
-      const pr = t.priority || "normal";
-      if(t.done) return;
-      if(!(pr==="urgent"||pr==="benefit")) return;
-      items.push({ text: t.text||"", pr, day });
-    });
-  });
-
-  // group by topic (text)
-  const groups = new Map();
-  items.forEach(it=>{
-    const k = it.text.toLowerCase();
-    if(!groups.has(k)){
-      groups.set(k,{ text: it.text, days:[], highest: it.pr });
-    }
-    const g = groups.get(k);
-    g.days.push(it.day);
-    const order = { normal:0, benefit:1, urgent:2 };
-    if(order[it.pr] > order[g.highest]) g.highest = it.pr;
-  });
-
-  const arr = Array.from(groups.values()).map(g=>{
-    g.earliest = Math.min(...g.days);
-    g.days = Array.from(new Set(g.days)).sort((a,b)=>a-b);
-    return g;
-  });
-
-  // sort by day then urgency (urgent first)
-  const prioOrder = { urgent:0, benefit:1, normal:2 };
-  arr.sort((a,b)=>{
-    if(a.earliest!==b.earliest) return a.earliest-b.earliest;
-    return prioOrder[a.highest]-prioOrder[b.highest];
-  });
-
-  list.innerHTML = "";
-  if(!arr.length){
-    list.innerHTML = `<div class="wk-empty">mark a task as urgent or benefit to see it here.</div>`;
-    return;
-  }
-
-  const short = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  arr.forEach(g=>{
-    const pill = document.createElement("div");
-    pill.className = "wk-pill " + (g.highest==="urgent" ? "urgent" : "benefit");
-    pill.innerHTML = `
-      <div class="t">${escapeHtml(g.text||"task")}</div>
-      <div class="m">${g.days.map(d=>short[d]).join(", ")}</div>
-    `;
-    list.appendChild(pill);
-  });
-}
-
-/* ----- EVENTS ----- */
-function getWeekEvents(){
-  const all = getAllEvents();
-  const key = weekKey(WK.weekStart);
-  return { all, week: all.filter(e=>e.week===key), others: all.filter(e=>e.week!==key) };
-}
-
-function renderEvents(){
-  // clear old
-  document.querySelectorAll(".event").forEach(e=>e.remove());
-  document.querySelectorAll(".wk-all-day-pill").forEach(e=>e.remove());
-
-  const { week } = getWeekEvents();
-  const gridHeight = 960;
-
-  week.forEach(ev=>{
-    const day = ev.day;
-    if(ev.allDay){
-      const list = document.querySelector(`[data-allday="${day}"]`);
-      if(!list) return;
-      const pill = document.createElement("div");
-      pill.className="wk-all-day-pill";
-      pill.dataset.cat = ev.category || "education";
-      pill.textContent = ev.title || "all-day";
-      pill.onclick = (e)=>{ e.stopPropagation(); openEventModal(ev); };
-      list.appendChild(pill);
-      return;
     }
 
-    const body = document.querySelector(`[data-body="${day}"]`);
-    if(!body) return;
-
-    const top = (ev.startMinutes/(24*60))*gridHeight;
-    const end = (ev.endMinutes/(24*60))*gridHeight;
-    const h = Math.max(24, end-top);
-
-    const box = document.createElement("div");
-    box.className="event";
-    box.dataset.cat = ev.category || "education";
-    box.style.top = top+"px";
-    box.style.height = h+"px";
-    box.innerHTML = `
-      <div class="et">${escapeHtml(ev.title||"event")}</div>
-      <div class="em">${timeLabelFromMinutes(ev.startMinutes)}–${timeLabelFromMinutes(ev.endMinutes)}</div>
-    `;
-    box.onclick = (e)=>{ e.stopPropagation(); openEventModal(ev); };
-    body.appendChild(box);
-  });
-}
-
-/* ----- MODAL LOGIC ----- */
-const overlay = document.getElementById("overlay");
-const modalTitle = document.getElementById("modalTitle");
-const evTitle = document.getElementById("evTitle");
-const evStart = document.getElementById("evStart");
-const evEnd = document.getElementById("evEnd");
-const evCat = document.getElementById("evCat");
-const evRepeat = document.getElementById("evRepeat");
-const evAllDay = document.getElementById("evAllDay");
-const btnClose = document.getElementById("closeModal");
-const btnSave = document.getElementById("saveEvent");
-const btnDelete = document.getElementById("deleteEvent");
-
-btnClose.onclick = closeModal;
-overlay.addEventListener("click", (e)=>{ if(e.target===overlay) closeModal(); });
-
-evAllDay.addEventListener("change", ()=>{
-  const on = evAllDay.checked;
-  evStart.disabled = on;
-  evEnd.disabled = on;
-  if(on){ evStart.value=""; evEnd.value=""; }
-  else{
-    evStart.value = timeLabelFromMinutes(WK.defaultStart);
-    evEnd.value = timeLabelFromMinutes(Math.min(WK.defaultStart+60,24*60));
-  }
-});
-
-function openEventModal(ev){
-  const isEdit = !!ev.id;
-  WK.editingId = isEdit ? ev.id : null;
-  WK.currentDay = typeof ev.day === "number" ? ev.day : 0;
-
-  modalTitle.textContent = isEdit ? "edit event" : "new event";
-  evTitle.value = ev.title || "";
-  evCat.value = ev.category || "education";
-  evRepeat.value = ev.repeat || "none";
-
-  const allDay = !!ev.allDay;
-  evAllDay.checked = allDay;
-
-  btnDelete.style.visibility = isEdit ? "visible" : "hidden";
-
-  if(allDay){
-    evStart.disabled = true; evEnd.disabled = true;
-    evStart.value=""; evEnd.value="";
-  }else{
-    evStart.disabled = false; evEnd.disabled = false;
-
-    const start = (typeof ev.startMinutes==="number") ? ev.startMinutes : WK.defaultStart;
-    const end   = (typeof ev.endMinutes==="number") ? ev.endMinutes : Math.min(start+60,24*60);
-    WK.defaultStart = start;
-
-    evStart.value = timeLabelFromMinutes(start);
-    evEnd.value   = timeLabelFromMinutes(end);
-  }
-
-  overlay.classList.add("show");
-}
-
-function closeModal(){
-  overlay.classList.remove("show");
-  WK.editingId = null;
-}
-
-btnSave.onclick = ()=>{
-  const title = (evTitle.value||"").trim() || "event";
-  const category = evCat.value;
-  const repeat = evRepeat.value || "none";
-  const allDay = !!evAllDay.checked;
-
-  let start = 0, end = 24*60;
-  if(!allDay){
-    start = parseTime(evStart.value) ?? WK.defaultStart;
-    end = parseTime(evEnd.value) ?? Math.min(start+60,24*60);
-  }
-
-  const { all, week, others } = getWeekEvents();
-  const key = weekKey(WK.weekStart);
-
-  if(WK.editingId){
-    const idx = all.findIndex(e=>e.id===WK.editingId);
-    if(idx>-1){
-      Object.assign(all[idx], { title, category, repeat, allDay, day: WK.currentDay, startMinutes:start, endMinutes:end });
+    function saveState(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-    saveAllEvents(all);
-  }else{
-    week.push({
-      id:uid(),
-      week:key,
-      day:WK.currentDay,
-      title,
-      category,
-      repeat,
-      allDay,
-      startMinutes:start,
-      endMinutes:end
+
+    // ---------- State ----------
+    let state = loadState();
+    let weekStart = startOfWeek(new Date());
+    let editingId = null;
+
+    // ---------- Elements ----------
+    const weekGrid = document.getElementById("weekGrid");
+    const weekLabel = document.getElementById("weekLabel");
+    const todayPill = document.getElementById("todayPill");
+    const prevWeek = document.getElementById("prevWeek");
+    const nextWeek = document.getElementById("nextWeek");
+    const newEventBtn = document.getElementById("newEventBtn");
+
+    const categoryChips = document.getElementById("categoryChips");
+    const intentionEl = document.getElementById("intention");
+    const miniListEl = document.getElementById("miniList");
+
+    const exportBtn = document.getElementById("exportBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const modalOverlay = document.getElementById("modalOverlay");
+    const closeModal = document.getElementById("closeModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const saveBtn = document.getElementById("saveBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const saveHint = document.getElementById("saveHint");
+
+    const evTitle = document.getElementById("evTitle");
+    const evCategory = document.getElementById("evCategory");
+    const evDate = document.getElementById("evDate");
+    const evStart = document.getElementById("evStart");
+    const evEnd = document.getElementById("evEnd");
+    const evNotes = document.getElementById("evNotes");
+
+    // ---------- UI Helpers ----------
+    function catById(id){
+      return CATEGORIES.find(c=>c.id===id) || CATEGORIES[0];
+    }
+
+    function setEventBorderColor(el, catId){
+      el.style.borderLeftColor = catById(catId).color;
+    }
+
+    function openModal({ mode, event=null, presetDate=null }){
+      modalOverlay.classList.add("show");
+      modalOverlay.setAttribute("aria-hidden", "false");
+
+      // category options
+      evCategory.innerHTML = "";
+      for(const c of CATEGORIES){
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = c.name;
+        evCategory.appendChild(opt);
+      }
+
+      if(mode === "edit" && event){
+        editingId = event.id;
+        modalTitle.textContent = "Edit event";
+        deleteBtn.style.display = "inline-flex";
+
+        evTitle.value = event.title || "";
+        evCategory.value = event.category || CATEGORIES[0].id;
+        evDate.value = event.date;
+        evStart.value = event.start || "";
+        evEnd.value = event.end || "";
+        evNotes.value = event.notes || "";
+        saveHint.textContent = "Saved to this device (localStorage).";
+      } else {
+        editingId = null;
+        modalTitle.textContent = "New event";
+        deleteBtn.style.display = "none";
+
+        evTitle.value = "";
+        evCategory.value = CATEGORIES[0].id;
+        evDate.value = presetDate || fmtDateISO(new Date());
+        evStart.value = "";
+        evEnd.value = "";
+        evNotes.value = "";
+        saveHint.textContent = "Tip: add a start time to keep your week readable.";
+      }
+
+      // focus
+      setTimeout(()=>evTitle.focus(), 50);
+    }
+
+    function closeModalFn(){
+      modalOverlay.classList.remove("show");
+      modalOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function upsertEvent(){
+      const title = evTitle.value.trim();
+      if(!title){
+        evTitle.focus();
+        saveHint.textContent = "Add a title first.";
+        return;
+      }
+      const payload = {
+        id: editingId || uid(),
+        title,
+        category: evCategory.value,
+        date: evDate.value,
+        start: evStart.value,
+        end: evEnd.value,
+        notes: evNotes.value.trim()
+      };
+
+      if(editingId){
+        state.events = state.events.map(e => e.id === editingId ? payload : e);
+      } else {
+        state.events = [...state.events, payload];
+      }
+
+      saveState();
+      render();
+      closeModalFn();
+    }
+
+    function deleteEvent(){
+      if(!editingId) return;
+      state.events = state.events.filter(e => e.id !== editingId);
+      saveState();
+      render();
+      closeModalFn();
+    }
+
+    // ---------- Render ----------
+    function renderCategories(){
+      categoryChips.innerHTML = "";
+      for(const c of CATEGORIES){
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        dot.style.background = c.color;
+        chip.appendChild(dot);
+        const text = document.createElement("span");
+        text.textContent = c.name;
+        chip.appendChild(text);
+        categoryChips.appendChild(chip);
+      }
+    }
+
+    function eventsForDate(dateISO){
+      return state.events
+        .filter(e => e.date === dateISO)
+        .sort((a,b) => (a.start||"").localeCompare(b.start||""));
+    }
+
+    function renderWeek(){
+      weekGrid.innerHTML = "";
+      weekLabel.textContent = fmtWeekLabel(weekStart);
+
+      const today = new Date();
+      todayPill.textContent = "Today: " + fmtShort(today);
+
+      const dows = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+      for(let i=0;i<7;i++){
+        const day = new Date(weekStart);
+        day.setDate(day.getDate()+i);
+        const dateISO = fmtDateISO(day);
+
+        const box = document.createElement("div");
+        box.className = "day";
+
+        const top = document.createElement("div");
+        top.className = "dayTop";
+        const left = document.createElement("div");
+        const dow = document.createElement("div");
+        dow.className = "dow";
+        dow.textContent = dows[i];
+        const date = document.createElement("div");
+        date.className = "date";
+        date.textContent = fmtShort(day);
+        left.appendChild(dow);
+        left.appendChild(date);
+
+        const addBtn = document.createElement("button");
+        addBtn.className = "btn";
+        addBtn.textContent = "+";
+        addBtn.title = "Add event";
+        addBtn.onclick = (e)=>{ e.stopPropagation(); openModal({mode:"new", presetDate: dateISO}); };
+
+        top.appendChild(left);
+        top.appendChild(addBtn);
+
+        const list = document.createElement("div");
+        list.className = "events";
+
+        const items = eventsForDate(dateISO);
+        for(const ev of items){
+          const evEl = document.createElement("div");
+          evEl.className = "event";
+          setEventBorderColor(evEl, ev.category);
+
+          const evLeft = document.createElement("div");
+          evLeft.className = "left";
+
+          const name = document.createElement("div");
+          name.className = "name";
+          name.textContent = ev.title;
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          const catName = catById(ev.category).name;
+          const time = (ev.start ? ev.start : "") + (ev.end ? `–${ev.end}` : "");
+          meta.textContent = [catName, time].filter(Boolean).join(" • ");
+
+          evLeft.appendChild(name);
+          evLeft.appendChild(meta);
+
+          evEl.appendChild(evLeft);
+
+          evEl.onclick = ()=> openModal({mode:"edit", event: ev});
+
+          list.appendChild(evEl);
+        }
+
+        const addSmall = document.createElement("button");
+        addSmall.className = "addSmall";
+        addSmall.textContent = "add something…";
+        addSmall.onclick = ()=> openModal({mode:"new", presetDate: dateISO});
+
+        box.appendChild(top);
+        box.appendChild(list);
+        box.appendChild(addSmall);
+
+        weekGrid.appendChild(box);
+      }
+    }
+
+    function renderRight(){
+      intentionEl.value = state.intention;
+      miniListEl.value = state.miniList;
+    }
+
+    function render(){
+      renderCategories();
+      renderWeek();
+      renderRight();
+    }
+
+    // ---------- Events ----------
+    prevWeek.addEventListener("click", ()=>{
+      const d = new Date(weekStart);
+      d.setDate(d.getDate()-7);
+      weekStart = d;
+      render();
     });
-    saveAllEvents([...others, ...week]);
-  }
 
-  closeModal();
-  renderEvents();
-};
+    nextWeek.addEventListener("click", ()=>{
+      const d = new Date(weekStart);
+      d.setDate(d.getDate()+7);
+      weekStart = d;
+      render();
+    });
 
-btnDelete.onclick = ()=>{
-  if(!WK.editingId) return;
-  const all = getAllEvents().filter(e=>e.id!==WK.editingId);
-  saveAllEvents(all);
-  closeModal();
-  renderEvents();
-};
+    newEventBtn.addEventListener("click", ()=> openModal({mode:"new"}));
+    closeModal.addEventListener("click", closeModalFn);
+    modalOverlay.addEventListener("click", (e)=>{
+      if(e.target === modalOverlay) closeModalFn();
+    });
 
-/* ==========================
-   INIT
-========================== */
-navigate();
-</script>
+    saveBtn.addEventListener("click", upsertEvent);
+    deleteBtn.addEventListener("click", deleteEvent);
+
+    intentionEl.addEventListener("input", ()=>{
+      state.intention = intentionEl.value;
+      saveState();
+    });
+
+    miniListEl.addEventListener("input", ()=>{
+      state.miniList = miniListEl.value;
+      saveState();
+    });
+
+    exportBtn.addEventListener("click", ()=>{
+      const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "daybyday-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    resetBtn.addEventListener("click", ()=>{
+      if(!confirm("Reset everything on this device?")) return;
+      state = { events: [], intention: "", miniList: "" };
+      saveState();
+      render();
+    });
+
+    // keyboard shortcut
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape") closeModalFn();
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
+        e.preventDefault();
+        openModal({mode:"new"});
+      }
+    });
+
+    // ---------- Init ----------
+    saveState();
+    render();
+  </script>
 </body>
 </html>
